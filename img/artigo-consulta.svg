@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="640" height="400">
+<rect width="640" height="400" fill="#17402F"/>
+<circle cx="545" cy="70" r="120" fill="none" stroke="#2A5C48" stroke-width="26"/>
+<circle cx="90" cy="345" r="70" fill="none" stroke="#2A5C48" stroke-width="20"/>
+<g fill="none" stroke="#E8D3CA" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+
+  <rect x="216" y="96" width="208" height="228" rx="12"/>
+  <rect x="278" y="72" width="84" height="44" rx="10" stroke="#F7F3EC"/>
+  <polyline points="252,168 266,182 292,152" stroke="#F7F3EC"/>
+  <path d="M312 168h74"/>
+  <polyline points="252,224 266,238 292,208" stroke="#F7F3EC"/>
+  <path d="M312 224h74"/>
+  <polyline points="252,280 266,294 292,264" stroke="#F7F3EC"/>
+  <path d="M312 280h48"/>
+
+</g>
+</svg>

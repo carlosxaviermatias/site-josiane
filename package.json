@@ -1,0 +1,21 @@
+{
+  "name": "site-josiane-tavares",
+  "version": "1.0.0",
+  "description": "Site da Enfermeira Josiane Tavares - saude da mulher, pre-natal e puerperio",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "keywords": ["enfermagem", "saude da mulher", "pre-natal", "puerperio"],
+  "author": "Tiago Tavares",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "multer": "^2.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

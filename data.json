@@ -1,0 +1,491 @@
+{
+  "config": {
+    "nome": "Josiane Tavares",
+    "titulo": "Dra. Josiane Tavares",
+    "profissao": "Enfermeira",
+    "coren": "COREN-RJ 455892-ENF",
+    "especialidade": "Saúde da Mulher",
+    "email": "josianenfermeira@gmail.com",
+    "instagram": "",
+    "cidade": "Paty do Alferes / RJ",
+    "dominio": "drajosianetavares.com.br"
+  },
+  "hero": {
+    "tagline": "Enfermagem • Saúde da Mulher",
+    "titulo": "Informação de qualidade sobre o cuidado com a mulher.",
+    "subtitulo": "Pré-natal, puerpério e exames preventivos explicados de forma clara, acolhedora e baseada em evidências.",
+    "ctaTexto": "Ver os temas",
+    "ctaLink": "#temas",
+    "foto": "img/josiane-hero.jpg"
+  },
+  "pilares": {
+    "titulo": "Os três eixos deste espaço",
+    "itens": [
+      {
+        "icone": "gestacao",
+        "titulo": "Pré-natal",
+        "texto": "O que acontece em cada trimestre, quais exames são feitos e o que observar até o parto."
+      },
+      {
+        "icone": "puerperio",
+        "titulo": "Puerpério",
+        "texto": "Os primeiros 45 dias após o parto: recuperação do corpo, amamentação e saúde mental."
+      },
+      {
+        "icone": "preventivo",
+        "titulo": "Exames preventivos",
+        "texto": "Papanicolau e demais exames da saúde da mulher: para que servem e como se preparar."
+      }
+    ]
+  },
+  "sobre": {
+    "label": "Sobre",
+    "titulo": "Enfermagem que informa antes de cuidar.",
+    "paragrafos": [
+      "Josiane Tavares é enfermeira, com atuação voltada à saúde da mulher — pré-natal, puerpério e exames preventivos. Sua prática é exercida integralmente no Sistema Único de Saúde.",
+      "Este site nasceu de uma constatação simples do dia a dia do serviço: boa parte das dúvidas que chegam ao consultório poderia ser respondida antes, com informação clara e confiável. Mulheres bem informadas chegam à consulta fazendo perguntas melhores — e cuidam melhor de si.",
+      "Aqui você encontra explicações sobre procedimentos, exames e fases da vida reprodutiva, escritas em linguagem acessível e apoiadas em protocolos do Ministério da Saúde e em evidência científica atual."
+    ],
+    "foto": "img/josiane-sobre.jpg"
+  },
+  "temas": [
+    {
+      "id": "pre-natal",
+      "titulo": "Pré-natal",
+      "resumo": "O acompanhamento da gestação do início ao parto: consultas, exames de rotina e o que esperar de cada trimestre.",
+      "imagem": "img/tema-pre-natal.svg",
+      "conteudo": "O pré-natal é o acompanhamento da gestação desde a confirmação até o parto. Seu objetivo é simples e ambicioso ao mesmo tempo: garantir que mãe e bebê cheguem ao fim da gravidez com a melhor saúde possível, identificando cedo qualquer condição que exija atenção.\n\n**Quando começar**\n\nO ideal é iniciar o pré-natal até a 12ª semana de gestação — quanto antes, melhor. O Ministério da Saúde recomenda no mínimo seis consultas ao longo da gravidez: uma no primeiro trimestre, duas no segundo e três no terceiro. Gestações que apresentam algum fator de risco costumam exigir acompanhamento mais frequente.\n\n**O que acontece nas consultas**\n\nEm cada encontro são verificados peso, pressão arterial, altura uterina, batimentos cardíacos do bebê e a presença de edemas. Também se conversa sobre queixas, hábitos, alimentação e sinais de alerta. A escuta faz parte do exame: muita coisa importante aparece na conversa, não na balança.\n\n**Exames de rotina**\n\nNo primeiro trimestre são solicitados tipagem sanguínea e fator Rh, hemograma, glicemia de jejum, sorologias (sífilis, HIV, hepatites B e C, toxoplasmose), exame de urina e urocultura. No segundo trimestre entra o teste de tolerância à glicose, entre 24 e 28 semanas, que investiga diabetes gestacional. No terceiro trimestre repetem-se sorologias e, entre 35 e 37 semanas, faz-se a pesquisa de estreptococo do grupo B. Ultrassonografias complementam o acompanhamento.\n\n**Vacinas na gestação**\n\nA gestante deve estar em dia com dTpa (a partir da 20ª semana, a cada gestação), hepatite B, influenza e COVID-19. A dTpa é especialmente importante: protege o recém-nascido contra a coqueluche nos primeiros meses, antes que ele possa ser vacinado.\n\n**O parceiro também tem pré-natal**\n\nO pré-natal do parceiro é uma estratégia do SUS que oferece exames e orientações ao acompanhante. Além de detectar condições que poderiam afetar a gestante e o bebê, envolve a família no cuidado desde o início."
+    },
+    {
+      "id": "puerperio",
+      "titulo": "Puerpério",
+      "resumo": "Os primeiros 45 dias após o parto: como o corpo se recupera, o que é esperado e o que precisa de atenção.",
+      "imagem": "img/tema-puerperio.svg",
+      "conteudo": "O puerpério é o período que vai do nascimento do bebê até aproximadamente 45 dias depois — o tempo que o corpo leva para retornar ao estado pré-gestacional. É uma fase de transformações intensas, e talvez a mais silenciada de toda a experiência da maternidade.\n\n**O que o corpo faz nesse período**\n\nO útero contrai progressivamente até voltar ao tamanho habitual, processo que costuma causar cólicas nos primeiros dias, especialmente durante a amamentação. Os lóquios — o sangramento pós-parto — mudam de aspecto ao longo das semanas: vermelho-vivos no início, tornam-se acastanhados e depois amarelados até cessarem. As mamas passam pela apojadura, quando o leite maduro desce, e podem ficar ingurgitadas.\n\n**A consulta puerperal**\n\nA primeira avaliação deve acontecer até o 7º ou 10º dia após o parto, com nova consulta por volta de 40 dias. Nela se verifica a involução uterina, a cicatrização — de cesárea ou de laceração perineal —, as mamas e a pega do bebê, a pressão arterial e o estado emocional. É também o momento de discutir contracepção.\n\n**Saúde mental é saúde puerperal**\n\nO chamado baby blues atinge grande parte das puérperas: tristeza, choro fácil e oscilação de humor nos primeiros dias, com resolução espontânea em cerca de duas semanas. Quando os sintomas persistem, se intensificam ou vêm acompanhados de desinteresse pelo bebê, culpa intensa ou pensamentos de morte, trata-se de depressão pós-parto — que é comum, tratável e nunca falha de caráter. Procure ajuda.\n\n**Retorno à rotina**\n\nO retorno às atividades sexuais costuma ser liberado após a consulta de 40 dias, respeitando o desejo e o conforto da mulher. Vale lembrar: amamentar não é método contraceptivo confiável fora de critérios muito específicos, e a ovulação pode voltar antes da primeira menstruação."
+    },
+    {
+      "id": "papanicolau",
+      "titulo": "Papanicolau (preventivo)",
+      "resumo": "O exame que rastreia o câncer do colo do útero: quem deve fazer, de quanto em quanto tempo e como se preparar.",
+      "imagem": "img/tema-papanicolau.svg",
+      "conteudo": "O exame citopatológico do colo do útero — conhecido como Papanicolau ou preventivo — é o principal método de rastreamento do câncer de colo uterino. Ele não diagnostica o câncer: detecta alterações nas células muito antes de qualquer lesão se tornar maligna, quando o tratamento é simples e altamente eficaz.\n\n**Quem deve fazer e com que frequência**\n\nA recomendação do Ministério da Saúde é que mulheres de 25 a 64 anos que já tiveram atividade sexual realizem o exame. Os dois primeiros são feitos com intervalo de um ano; se ambos vierem normais, o exame passa a ser trienal. Mulheres com condições específicas — imunossupressão, HIV, histórico de alterações — seguem intervalos próprios.\n\n**Como se preparar**\n\nNas 48 horas anteriores, evite relações sexuais, duchas vaginais, cremes e medicamentos de uso vaginal. O exame não deve ser feito durante a menstruação, exceto em situações de sangramento anormal que exijam avaliação. Estar menstruada não é motivo de vergonha — é apenas motivo de remarcação.\n\n**Como é feito**\n\nA mulher fica em posição ginecológica e o profissional introduz o espéculo para visualizar o colo do útero. Com uma espátula e uma escovinha, colhe-se material da parte externa e do canal cervical. O procedimento dura poucos minutos. Pode causar desconforto, pressão ou leve incômodo — dor intensa não é normal e deve ser comunicada na hora.\n\n**O resultado**\n\nA maioria dos resultados é normal ou mostra apenas inflamação. Quando aparecem alterações celulares, elas são classificadas por grau e conduzem a exames complementares, como a colposcopia. Um resultado alterado não significa câncer, e essa distinção evita muito sofrimento desnecessário.\n\n**HPV e vacinação**\n\nQuase todos os casos de câncer de colo uterino estão associados ao HPV. A vacina está disponível gratuitamente no SUS e é a prevenção mais eficaz que existe — mas não substitui o rastreamento: quem se vacinou continua fazendo o preventivo."
+    },
+    {
+      "id": "exames-ginecologicos",
+      "titulo": "Outros exames da mulher",
+      "resumo": "Mamografia, ultrassonografias, testes rápidos e o que mais compõe o cuidado preventivo ao longo da vida.",
+      "imagem": "img/tema-exames.svg",
+      "conteudo": "Além do preventivo, a saúde da mulher se apoia em um conjunto de exames que mudam conforme a faixa etária e o histórico de cada uma.\n\n**Mamografia**\n\nÉ o exame de rastreamento do câncer de mama. No SUS, é ofertada a cada dois anos para mulheres de 50 a 69 anos. Mulheres com histórico familiar importante ou fatores de risco podem iniciar antes, conforme avaliação. O autoexame das mamas não substitui a mamografia, mas conhecer o próprio corpo ajuda a perceber mudanças — nódulos, alterações na pele, retração do mamilo ou secreção — que devem ser levadas ao serviço de saúde.\n\n**Ultrassonografia transvaginal e pélvica**\n\nAvaliam útero, ovários e endométrio. São indicadas na investigação de sangramentos anormais, dor pélvica, suspeita de cistos, miomas ou endometriose, e no acompanhamento de algumas condições.\n\n**Testes rápidos**\n\nSífilis, HIV e hepatites B e C são testados por punção digital, com resultado em cerca de 30 minutos. Estão disponíveis nas unidades básicas de saúde, são gratuitos e sigilosos. Testar faz parte do cuidado de rotina — não é acusação nem suspeita, é prevenção.\n\n**Exames laboratoriais de rotina**\n\nHemograma, glicemia, perfil lipídico e função tireoidiana compõem a avaliação periódica de saúde. Anemia e alterações de tireoide são frequentes entre mulheres e explicam sintomas que muitas vezes são atribuídos apenas ao cansaço da rotina.\n\n**Colposcopia**\n\nExame complementar solicitado quando o preventivo mostra alterações. Amplia a visualização do colo do útero e permite biópsia dirigida quando necessário."
+    },
+    {
+      "id": "amamentacao",
+      "titulo": "Amamentação",
+      "resumo": "Pega correta, produção de leite, fissuras e as dúvidas mais frequentes das primeiras semanas.",
+      "imagem": "img/tema-amamentacao.svg",
+      "conteudo": "A recomendação é de aleitamento materno exclusivo até os 6 meses e complementado até os 2 anos ou mais. Dito isso, amamentar é uma habilidade que se aprende — e dificuldade no início não é sinal de fracasso.\n\n**Pega correta**\n\nO bebê deve abocanhar não só o mamilo, mas boa parte da aréola, com a boca bem aberta, o lábio inferior virado para fora e o queixo tocando a mama. Uma pega correta é a melhor prevenção contra fissuras e garante que o bebê extraia leite de forma eficiente. Se dói ao longo de toda a mamada, quase sempre a pega precisa de ajuste.\n\n**Produção de leite**\n\nA produção funciona por demanda: quanto mais a mama é esvaziada, mais leite se produz. Por isso a livre demanda nas primeiras semanas é tão importante. O leite dos primeiros dias, o colostro, sai em pequena quantidade e é exatamente o que o recém-nascido precisa — pouco volume não significa leite fraco.\n\n**Ingurgitamento e fissuras**\n\nMamas muito cheias, doloridas e endurecidas caracterizam o ingurgitamento. Ordenha manual do excesso antes da mamada, mamadas frequentes e compressas frias nos intervalos ajudam. Fissuras costumam indicar problema de pega e melhoram com correção da técnica e com o próprio leite materno aplicado na região.\n\n**Quando procurar ajuda**\n\nFebre, vermelhidão e dor intensa em uma região da mama podem indicar mastite e exigem avaliação. Bebê que não ganha peso, urina pouco ou está muito sonolento para mamar também precisa ser visto sem demora."
+    },
+    {
+      "id": "planejamento-familiar",
+      "titulo": "Planejamento familiar",
+      "resumo": "Métodos contraceptivos disponíveis, como escolher e o que considerar em cada fase da vida.",
+      "imagem": "img/tema-planejamento.svg",
+      "conteudo": "Planejamento reprodutivo é o direito de decidir se, quando e quantos filhos ter — com informação e acesso a métodos. No SUS, os métodos contraceptivos são gratuitos.\n\n**Métodos hormonais**\n\nPílulas combinadas, pílulas de progestagênio isolado (indicadas na amamentação), injetáveis mensais e trimestrais e implante subdérmico. A escolha considera idade, tabagismo, pressão arterial, enxaqueca com aura, amamentação e histórico de trombose — motivo pelo qual a indicação precisa ser individualizada, e não copiada de amigas.\n\n**DIU**\n\nO DIU de cobre não tem hormônio e dura até 10 anos. O DIU hormonal libera levonorgestrel, dura cerca de 5 anos e costuma reduzir bastante o fluxo menstrual. Ambos estão entre os métodos mais eficazes disponíveis e podem ser usados por mulheres que ainda não tiveram filhos.\n\n**Métodos de barreira**\n\nO preservativo masculino e o feminino são os únicos que protegem simultaneamente contra gravidez e infecções sexualmente transmissíveis. Por isso a dupla proteção — barreira somada a outro método — é a recomendação em muitos contextos.\n\n**Contracepção de emergência**\n\nA pílula do dia seguinte deve ser tomada o quanto antes após a relação desprotegida, preferencialmente em até 72 horas. Não é método de rotina e não interrompe gestação já estabelecida.\n\n**Métodos definitivos**\n\nLaqueadura e vasectomia são procedimentos cirúrgicos previstos em lei, com critérios específicos de idade, número de filhos e prazo de reflexão após a manifestação da vontade."
+    }
+  ],
+  "enfermagem": {
+    "label": "Enfermagem geral",
+    "titulo": "Para além da saúde da mulher",
+    "texto": "A enfermagem acompanha a pessoa em todas as fases da vida. Alguns cuidados que fazem parte da rotina da atenção básica e que geram dúvidas frequentes:",
+    "itens": [
+      {
+        "titulo": "Vacinação",
+        "texto": "Calendário do nascimento à terceira idade, intervalos, doses de reforço e o que fazer quando o cartão está atrasado."
+      },
+      {
+        "titulo": "Curativos",
+        "texto": "Avaliação e cuidado de feridas, troca de coberturas e sinais de infecção que exigem reavaliação."
+      },
+      {
+        "titulo": "Pressão e glicemia",
+        "texto": "Aferição, valores de referência e o acompanhamento de hipertensão e diabetes na atenção básica."
+      },
+      {
+        "titulo": "Administração de medicamentos",
+        "texto": "Orientações sobre uso correto, horários, interações e por que não interromper tratamento por conta própria."
+      },
+      {
+        "titulo": "Educação em saúde",
+        "texto": "Alimentação, atividade física, sono e prevenção — o cuidado que acontece fora da unidade de saúde."
+      },
+      {
+        "titulo": "Acolhimento e classificação de risco",
+        "texto": "Como funciona a triagem, por que a ordem de atendimento nem sempre é a ordem de chegada."
+      }
+    ]
+  },
+  "alerta": {
+    "titulo": "Sinais que pedem avaliação sem esperar",
+    "subtitulo": "Na gestação ou no puerpério, procure imediatamente um serviço de saúde diante de qualquer um destes sinais:",
+    "itens": [
+      "Sangramento vaginal intenso ou com coágulos",
+      "Perda de líquido pela vagina",
+      "Dor de cabeça forte e persistente, visão embaçada ou pontos luminosos",
+      "Inchaço súbito no rosto, nas mãos ou nas pernas",
+      "Febre igual ou superior a 38 °C",
+      "Dor abdominal intensa ou contrações antes do tempo",
+      "Redução ou ausência dos movimentos do bebê",
+      "Falta de ar, dor no peito ou desmaio",
+      "Vermelhidão e dor intensa em uma das mamas",
+      "Tristeza profunda, desinteresse pelo bebê ou pensamentos de se machucar"
+    ],
+    "rodape": "Em emergência, procure a maternidade de referência ou ligue 192 (SAMU)."
+  },
+  "artigos": [
+    {
+      "slug": "primeira-consulta-pre-natal",
+      "titulo": "O que levar na primeira consulta de pré-natal",
+      "resumo": "Uma lista curta do que separar antes de sair de casa — e do que vale anotar para não esquecer de perguntar.",
+      "data": "2026-08-15",
+      "imagem": "img/artigo-consulta.svg",
+      "publicado": true,
+      "conteudo": "A primeira consulta de pré-natal costuma ser mais longa que as demais, porque é nela que se monta o histórico completo da gestação.\n\n**O que levar**\n\nDocumento de identidade, cartão do SUS, cartão de vacinas e exames anteriores, se houver. Se você usa alguma medicação contínua, leve a caixa ou anote o nome exato e a dose.\n\n**O que tentar lembrar**\n\nA data da última menstruação é a informação mais importante da consulta — é a partir dela que se calcula a idade gestacional e a data provável do parto. Vale também recordar gestações anteriores, partos, abortamentos e cirurgias.\n\n**O que anotar antes**\n\nDúvidas somem na hora da consulta. Escreva no celular tudo o que quiser perguntar, por menor que pareça. Sintomas que você vem sentindo, alimentos que causam mal-estar, medos sobre o parto — tudo cabe.\n\n**Leve companhia, se puder**\n\nO acompanhante tem direito garantido por lei em consultas, exames e no parto. Duas pessoas ouvindo as orientações retêm mais do que uma."
+    },
+    {
+      "slug": "mitos-sobre-o-preventivo",
+      "titulo": "Cinco mitos sobre o exame preventivo",
+      "resumo": "Do 'só quem tem sintoma precisa fazer' ao 'depois da menopausa não é mais necessário' — o que a evidência diz.",
+      "data": "2026-08-02",
+      "imagem": "img/artigo-mitos.svg",
+      "publicado": true,
+      "conteudo": "**\"Só preciso fazer se tiver algum sintoma.\"**\n\nO propósito do rastreamento é justamente encontrar alterações antes que qualquer sintoma apareça. Quando surgem sintomas, a lesão costuma estar mais avançada.\n\n**\"Depois da menopausa não é mais necessário.\"**\n\nA recomendação vai até os 64 anos, e o encerramento depende de ter dois exames normais consecutivos nos últimos cinco anos. Menopausa não encerra o rastreamento.\n\n**\"Fiz laqueadura, então não preciso.\"**\n\nA laqueadura impede a gravidez, não altera em nada o risco de lesões no colo do útero.\n\n**\"Tomei a vacina do HPV, estou protegida.\"**\n\nA vacina protege contra os tipos de HPV mais associados ao câncer, mas não contra todos. Quem se vacinou continua fazendo o preventivo.\n\n**\"O exame dói muito.\"**\n\nO exame costuma causar desconforto, não dor intensa. Tensão muscular aumenta o incômodo — respirar fundo e avisar o profissional sobre qualquer dor faz diferença real no procedimento."
+    },
+    {
+      "slug": "baby-blues-ou-depressao",
+      "titulo": "Baby blues ou depressão pós-parto?",
+      "resumo": "As duas coisas existem, são diferentes e nenhuma delas é frescura. Como distinguir e quando buscar ajuda.",
+      "data": "2026-07-20",
+      "imagem": "img/artigo-blues.svg",
+      "publicado": true,
+      "conteudo": "**O baby blues**\n\nAtinge a maioria das puérperas. Aparece nos primeiros dias após o parto, com choro fácil, irritabilidade, ansiedade e oscilação de humor. Resolve-se sozinho em até duas semanas e está ligado à queda hormonal abrupta somada ao cansaço e à mudança de rotina.\n\n**A depressão pós-parto**\n\nQuando os sintomas ultrapassam duas semanas, se intensificam ou passam a comprometer o cuidado consigo e com o bebê, o quadro é outro. Tristeza persistente, perda de interesse, culpa intensa, insônia mesmo com o bebê dormindo, alterações de apetite e pensamentos de morte ou de se machucar são sinais de depressão pós-parto.\n\n**Por que isso não é fraqueza**\n\nA depressão pós-parto tem base biológica, atinge cerca de uma em cada oito mulheres e responde bem a tratamento. O que a agrava, quase sempre, é o silêncio: a expectativa social de que a maternidade seja um período exclusivamente feliz faz com que muitas mulheres escondam o que sentem.\n\n**O que fazer**\n\nFale com a equipe de saúde da sua unidade. O acompanhamento pode envolver psicoterapia, rede de apoio e, quando indicado, medicação compatível com a amamentação. Se houver pensamentos de morte, procure ajuda imediatamente ou ligue 188 (CVV)."
+    }
+  ],
+  "indicacoes": {
+    "titulo": "Indicações",
+    "subtitulo": "Produtos e materiais que costumo recomendar no dia a dia. Alguns links podem ser de afiliados — se você comprar por eles, o valor para você é o mesmo e ajuda a manter este site no ar.",
+    "aviso": "Nenhuma indicação aqui substitui avaliação profissional individual.",
+    "itens": [
+      {
+        "titulo": "[NOME DO PRODUTO]",
+        "categoria": "Amamentação",
+        "descricao": "[Descrição curta do produto e por que você recomenda.]",
+        "imagem": "img/indicacao-placeholder.jpg",
+        "link": "#",
+        "botao": "Ver produto",
+        "ativo": true
+      },
+      {
+        "titulo": "[NOME DO PRODUTO]",
+        "categoria": "Gestação",
+        "descricao": "[Descrição curta do produto e por que você recomenda.]",
+        "imagem": "img/indicacao-placeholder.jpg",
+        "link": "#",
+        "botao": "Ver produto",
+        "ativo": true
+      },
+      {
+        "titulo": "[NOME DO MATERIAL]",
+        "categoria": "Livros e cartilhas",
+        "descricao": "[Descrição curta do material e por que você recomenda.]",
+        "imagem": "img/indicacao-placeholder.jpg",
+        "link": "#",
+        "botao": "Ver material",
+        "ativo": true
+      }
+    ]
+  },
+  "rodape": {
+    "aviso": "O conteúdo deste site tem caráter exclusivamente informativo e educativo. Não realiza diagnóstico, não prescreve tratamento e não substitui a consulta com profissional de saúde. O atendimento clínico de Josiane Tavares é prestado exclusivamente no Sistema Único de Saúde, não havendo atendimento particular.",
+    "creditos": "Josiane Tavares — Enfermeira"
+  },
+  "faq": {
+    "titulo": "Perguntas frequentes",
+    "subtitulo": "Comece dizendo em que momento você está. As respostas se organizam a partir daí.",
+    "aviso": "Este conteúdo é informativo e não substitui a avaliação de um profissional de saúde. Diante de qualquer sinal de alerta, procure a sua unidade de saúde ou a maternidade de referência.",
+    "fases": [
+      {
+        "id": "gestante",
+        "titulo": "Estou grávida",
+        "texto": "Pré-natal, exames de cada trimestre e o que observar."
+      },
+      {
+        "id": "puerpera",
+        "titulo": "Tive bebê há pouco",
+        "texto": "Recuperação, amamentação e saúde mental no pós-parto."
+      },
+      {
+        "id": "prevencao",
+        "titulo": "Cuidado preventivo",
+        "texto": "Papanicolau, mamografia e a rotina da saúde da mulher."
+      },
+      {
+        "id": "planejando",
+        "titulo": "Planejando engravidar",
+        "texto": "Preparo antes da gestação e planejamento reprodutivo."
+      }
+    ],
+    "marcos": [
+      {
+        "de": 1,
+        "ate": 12,
+        "titulo": "Início do pré-natal",
+        "texto": "Idealmente até a 12ª semana. Nesta fase são solicitados tipagem sanguínea e fator Rh, hemograma, glicemia de jejum, sorologias (sífilis, HIV, hepatites B e C, toxoplasmose), exame de urina e urocultura. O ácido fólico deve estar em uso."
+      },
+      {
+        "de": 11,
+        "ate": 14,
+        "titulo": "Ultrassonografia do 1º trimestre",
+        "texto": "Confirma a idade gestacional com maior precisão e avalia a translucência nucal. É a ultrassonografia que costuma definir a data provável do parto."
+      },
+      {
+        "de": 20,
+        "ate": 24,
+        "titulo": "dTpa e ultrassonografia morfológica",
+        "texto": "A vacina dTpa é aplicada a partir da 20ª semana, a cada gestação — protege o bebê contra coqueluche nos primeiros meses. A morfológica avalia a formação dos órgãos."
+      },
+      {
+        "de": 24,
+        "ate": 28,
+        "titulo": "Teste de tolerância à glicose",
+        "texto": "Investiga diabetes gestacional. É feito em jejum, com coletas antes e depois da ingestão de glicose. Reserve a manhã: o exame leva cerca de duas horas."
+      },
+      {
+        "de": 28,
+        "ate": 34,
+        "titulo": "Consultas mais frequentes",
+        "texto": "A partir daqui o acompanhamento se intensifica. Repetem-se sorologias e hemograma. É o momento de conversar sobre o plano de parto e conhecer a maternidade de referência."
+      },
+      {
+        "de": 35,
+        "ate": 37,
+        "titulo": "Pesquisa de estreptococo do grupo B",
+        "texto": "Coleta simples que orienta o uso de antibiótico no trabalho de parto, quando indicado. Também se avalia a apresentação do bebê."
+      },
+      {
+        "de": 37,
+        "ate": 42,
+        "titulo": "Gestação a termo",
+        "texto": "A partir de 37 semanas o bebê é considerado a termo. Fique atenta aos sinais de trabalho de parto: contrações regulares e progressivamente mais fortes, perda do tampão mucoso e perda de líquido."
+      }
+    ],
+    "perguntas": [
+      {
+        "p": "Com quantas semanas devo começar o pré-natal?",
+        "r": "O ideal é iniciar até a 12ª semana de gestação — quanto antes, melhor. O Ministério da Saúde recomenda no mínimo seis consultas ao longo da gravidez. Se você descobriu a gestação mais tarde, procure a unidade de saúde assim que possível: começar tarde é muito melhor do que não começar.",
+        "fases": [
+          "gestante",
+          "planejando"
+        ],
+        "tema": "pre-natal"
+      },
+      {
+        "p": "Posso fazer o pré-natal com enfermeiro?",
+        "r": "Sim. O pré-natal de risco habitual pode ser conduzido por enfermeiro, de forma intercalada com o médico, conforme protocolo do Ministério da Saúde. Gestações que apresentam fatores de risco são encaminhadas para acompanhamento especializado.",
+        "fases": [
+          "gestante"
+        ],
+        "tema": "pre-natal"
+      },
+      {
+        "p": "Quantas ultrassonografias vou fazer?",
+        "r": "Não existe número fixo. No SUS, o roteiro habitual inclui uma ultrassonografia no primeiro trimestre (entre 11 e 14 semanas) e a morfológica de segundo trimestre (entre 20 e 24 semanas). Outras podem ser solicitadas conforme a necessidade. Ultrassonografia não é rotina mensal — a avaliação clínica em cada consulta é o que acompanha o crescimento do bebê.",
+        "fases": [
+          "gestante"
+        ],
+        "tema": "pre-natal"
+      },
+      {
+        "p": "Quais vacinas posso tomar grávida?",
+        "r": "dTpa (a partir da 20ª semana, a cada gestação), hepatite B, influenza e COVID-19. Vacinas de vírus vivo, como tríplice viral e febre amarela, são contraindicadas na gestação, salvo situações excepcionais avaliadas caso a caso. Leve o cartão de vacinas em todas as consultas.",
+        "fases": [
+          "gestante",
+          "planejando"
+        ],
+        "tema": "pre-natal"
+      },
+      {
+        "p": "É normal sentir cólica no início da gravidez?",
+        "r": "Desconfortos leves no baixo ventre são comuns nas primeiras semanas, ligados ao crescimento do útero. O que exige avaliação sem esperar é dor intensa, dor acompanhada de sangramento, ou dor que não passa. Nesses casos, procure a unidade de saúde.",
+        "fases": [
+          "gestante"
+        ],
+        "tema": "pre-natal"
+      },
+      {
+        "p": "Posso ter relação sexual durante a gestação?",
+        "r": "Na gestação de risco habitual, sim, respeitando o conforto e o desejo. As restrições existem em situações específicas — placenta prévia, ameaça de trabalho de parto prematuro, perda de líquido, sangramento — e devem ser orientadas individualmente no pré-natal.",
+        "fases": [
+          "gestante"
+        ],
+        "tema": "pre-natal"
+      },
+      {
+        "p": "O pai ou parceiro pode participar?",
+        "r": "Sim, e é recomendado. O pré-natal do parceiro oferece exames e orientações ao acompanhante, detectando condições que poderiam afetar a gestante e o bebê. Além disso, a lei garante o direito a acompanhante nas consultas, nos exames e no parto.",
+        "fases": [
+          "gestante",
+          "planejando"
+        ],
+        "tema": "pre-natal"
+      },
+      {
+        "p": "Quando devo ir para a maternidade?",
+        "r": "Procure a maternidade diante de contrações regulares e progressivamente mais fortes, perda de líquido, sangramento vaginal ou redução dos movimentos do bebê. Diante de qualquer sinal de alerta — dor de cabeça forte, visão embaçada, inchaço súbito, febre — vá sem esperar a hora do parto.",
+        "fases": [
+          "gestante"
+        ],
+        "tema": "pre-natal"
+      },
+      {
+        "p": "Quanto tempo dura o sangramento pós-parto?",
+        "r": "Os lóquios costumam durar de duas a seis semanas, mudando de aspecto: vermelho-vivos no início, depois acastanhados e por fim amarelados. Sinal de alerta é sangramento que aumenta em vez de diminuir, encharca um absorvente por hora ou vem com coágulos grandes e odor forte — nesses casos, procure atendimento.",
+        "fases": [
+          "puerpera"
+        ],
+        "tema": "puerperio"
+      },
+      {
+        "p": "Quando é a consulta de retorno depois do parto?",
+        "r": "A primeira avaliação deve acontecer até o 7º ou 10º dia após o parto, com nova consulta por volta de 40 dias. Nelas se verifica a involução do útero, a cicatrização, as mamas e a pega do bebê, a pressão arterial e o estado emocional — e se discute contracepção.",
+        "fases": [
+          "puerpera"
+        ],
+        "tema": "puerperio"
+      },
+      {
+        "p": "Amamentar dói? O que faço se estiver doendo?",
+        "r": "A mamada não deve doer ao longo de toda a sua duração. Dor persistente quase sempre indica problema de pega: o bebê precisa abocanhar boa parte da aréola, com a boca bem aberta, o lábio inferior virado para fora e o queixo tocando a mama. Corrigir a pega resolve a maioria dos casos. Procure ajuda antes de desistir.",
+        "fases": [
+          "puerpera"
+        ],
+        "tema": "amamentacao"
+      },
+      {
+        "p": "Meu leite é fraco? O bebê parece não se satisfazer.",
+        "r": "Leite fraco não existe. O leite dos primeiros dias, o colostro, sai em pouca quantidade e é exatamente o que o recém-nascido precisa. Os sinais de que está tudo bem são o ganho de peso e a quantidade de fraldas molhadas ao dia. Se o bebê não ganha peso, urina pouco ou está muito sonolento para mamar, procure avaliação.",
+        "fases": [
+          "puerpera"
+        ],
+        "tema": "amamentacao"
+      },
+      {
+        "p": "Estou muito triste depois do parto. É normal?",
+        "r": "O baby blues atinge a maioria das puérperas: choro fácil, irritabilidade e oscilação de humor nos primeiros dias, com melhora espontânea em até duas semanas. Quando os sintomas passam disso, se intensificam, ou vêm com desinteresse pelo bebê, culpa intensa ou pensamentos de morte, trata-se de depressão pós-parto — que é comum, tratável e nunca falha de caráter. Fale com a equipe da sua unidade. Se houver pensamentos de morte, ligue 188 (CVV).",
+        "fases": [
+          "puerpera"
+        ],
+        "tema": "puerperio"
+      },
+      {
+        "p": "Posso engravidar amamentando?",
+        "r": "Pode. A amamentação só oferece proteção contraceptiva em critérios muito específicos: bebê com menos de 6 meses, aleitamento exclusivo em livre demanda e ausência de menstruação — os três ao mesmo tempo. Fora disso, é necessário método contraceptivo. A ovulação pode voltar antes da primeira menstruação.",
+        "fases": [
+          "puerpera"
+        ],
+        "tema": "planejamento-familiar"
+      },
+      {
+        "p": "Quando posso voltar a ter relações?",
+        "r": "O retorno costuma ser liberado após a consulta de 40 dias, respeitando a cicatrização e, principalmente, o desejo e o conforto da mulher. Não há pressa nem prazo certo. Vale combinar contracepção antes disso.",
+        "fases": [
+          "puerpera"
+        ],
+        "tema": "puerperio"
+      },
+      {
+        "p": "De quanto em quanto tempo devo fazer o preventivo?",
+        "r": "A recomendação é para mulheres de 25 a 64 anos que já tiveram atividade sexual. Os dois primeiros exames são feitos com intervalo de um ano; se ambos vierem normais, o exame passa a ser trienal. Condições específicas — imunossupressão, HIV, histórico de alterações — seguem intervalos próprios.",
+        "fases": [
+          "prevencao"
+        ],
+        "tema": "papanicolau"
+      },
+      {
+        "p": "Como me preparo para o Papanicolau?",
+        "r": "Nas 48 horas anteriores, evite relações sexuais, duchas vaginais, cremes e medicamentos de uso vaginal. O exame não deve ser feito durante a menstruação, exceto em caso de sangramento anormal que exija avaliação. Estar menstruada não é motivo de vergonha — é apenas motivo de remarcação.",
+        "fases": [
+          "prevencao"
+        ],
+        "tema": "papanicolau"
+      },
+      {
+        "p": "Meu resultado veio alterado. É câncer?",
+        "r": "Quase nunca. A maioria dos resultados alterados mostra inflamação ou alterações celulares de baixo grau, que costumam regredir sozinhas ou exigir apenas acompanhamento. Alterações mais significativas levam a exames complementares, como a colposcopia. Um resultado alterado é um pedido de investigação, não um diagnóstico.",
+        "fases": [
+          "prevencao"
+        ],
+        "tema": "papanicolau"
+      },
+      {
+        "p": "Tomei a vacina do HPV. Ainda preciso do preventivo?",
+        "r": "Sim. A vacina protege contra os tipos de HPV mais associados ao câncer de colo do útero, mas não contra todos. Quem se vacinou continua no mesmo esquema de rastreamento.",
+        "fases": [
+          "prevencao"
+        ],
+        "tema": "papanicolau"
+      },
+      {
+        "p": "Com que idade começo a fazer mamografia?",
+        "r": "No SUS, a mamografia de rastreamento é ofertada a cada dois anos para mulheres de 50 a 69 anos. Mulheres com histórico familiar importante ou outros fatores de risco podem iniciar antes, conforme avaliação. Conhecer as próprias mamas ajuda a perceber mudanças que devem ser levadas ao serviço de saúde.",
+        "fases": [
+          "prevencao"
+        ],
+        "tema": "exames-ginecologicos"
+      },
+      {
+        "p": "Preciso mesmo fazer teste de HIV e sífilis?",
+        "r": "Os testes rápidos de sífilis, HIV e hepatites B e C fazem parte do cuidado de rotina — não são acusação nem suspeita. São gratuitos, sigilosos, feitos por punção digital e têm resultado em cerca de 30 minutos. Na gestação são repetidos por trimestre, porque o tratamento precoce muda completamente o desfecho para o bebê.",
+        "fases": [
+          "prevencao",
+          "gestante",
+          "planejando"
+        ],
+        "tema": "exames-ginecologicos"
+      },
+      {
+        "p": "O que fazer antes de tentar engravidar?",
+        "r": "Procure a unidade de saúde para uma consulta pré-concepcional: atualização do cartão de vacinas, exames de rotina e sorologias, avaliação de condições crônicas e revisão de medicamentos em uso. O ácido fólico deve ser iniciado idealmente três meses antes da concepção, para reduzir o risco de defeitos do tubo neural.",
+        "fases": [
+          "planejando"
+        ],
+        "tema": "pre-natal"
+      },
+      {
+        "p": "Quanto tempo depois de parar o anticoncepcional posso engravidar?",
+        "r": "Depende do método. Após a pílula ou o DIU, a fertilidade costuma retornar já no primeiro ciclo. O injetável trimestral pode levar alguns meses até a ovulação se restabelecer. Nenhum desses métodos causa infertilidade permanente.",
+        "fases": [
+          "planejando"
+        ],
+        "tema": "planejamento-familiar"
+      },
+      {
+        "p": "Qual método contraceptivo é o melhor?",
+        "r": "Não existe o melhor em abstrato — existe o mais adequado para cada mulher. A escolha considera idade, tabagismo, pressão arterial, enxaqueca com aura, amamentação e histórico de trombose, entre outros fatores. Por isso a indicação precisa ser individualizada, e não copiada de amigas. Todos os métodos são gratuitos no SUS.",
+        "fases": [
+          "planejando",
+          "puerpera",
+          "prevencao"
+        ],
+        "tema": "planejamento-familiar"
+      },
+      {
+        "p": "DIU serve para quem nunca teve filhos?",
+        "r": "Sim. Não há impedimento para inserção de DIU em mulheres que nunca engravidaram. É um dos métodos mais eficazes disponíveis, com versões de cobre (sem hormônio, até 10 anos) e hormonal (cerca de 5 anos, costuma reduzir bastante o fluxo menstrual).",
+        "fases": [
+          "planejando",
+          "prevencao"
+        ],
+        "tema": "planejamento-familiar"
+      }
+    ]
+  }
+}
