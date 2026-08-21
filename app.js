@@ -68,7 +68,7 @@ function syncToGitHub(message) {
   const remote = `https://x-access-token:${token}@github.com/${repo}.git`;
   const cmd = [
     `cd ${JSON.stringify(__dirname)}`,
-    'git add data.json pacientes.json img',
+    'git add data.json img',
     `git -c user.name="Painel Josiane" -c user.email="painel@drajosianetavares.com.br" commit -m ${JSON.stringify(message)} || true`,
     `git push ${JSON.stringify(remote)} HEAD:${branch}`
   ].join(' && ');
