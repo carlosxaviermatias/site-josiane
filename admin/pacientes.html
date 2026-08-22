@@ -66,44 +66,64 @@
   .cor-verde strong { color:var(--verde-600); }
   .cor-ocre strong { color:var(--ocre); }
   .cor-erro strong { color:var(--erro); }
-  .cor-claro strong { color:var(--verde-400); }
 
   .bloco { background:#fff; border:1px solid var(--areia-3); border-radius:4px; padding:1.6rem; margin-bottom:1.3rem; }
   .bloco-topo { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1.2rem; flex-wrap:wrap; }
   .bloco-topo h2 { font-size:1.3rem; margin:0; }
   .dica { font-size:.78rem; color:var(--texto-suave); }
 
-  .visao-grid { display:grid; grid-template-columns:auto 1fr; gap:2rem; align-items:center; }
-  @media (max-width:720px){ .visao-grid { grid-template-columns:1fr; } }
-  .legenda { display:flex; flex-direction:column; gap:.55rem; font-size:.86rem; }
-  .legenda i { display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:.55rem; }
-
-  /* avisos */
-  .aviso-item {
-    display:flex; align-items:center; gap:1rem; flex-wrap:wrap;
-    padding:.85rem 1rem; border-radius:4px; margin-bottom:.55rem;
-    border:1px solid var(--areia-3); background:var(--areia); cursor:pointer;
-    transition:160ms;
-  }
-  .aviso-item:hover { border-color:var(--verde-400); }
-  .aviso-item.atraso { background:var(--erro-bg); border-color:#E0BBAC; }
-  .aviso-item.vence { background:var(--ocre-bg); border-color:#E3CD9C; }
-  .aviso-item strong { font-size:.92rem; }
-  .aviso-item span { font-size:.86rem; color:var(--texto-suave); flex:1; }
-  .aviso-etq {
-    font-size:.68rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
-    padding:.25rem .6rem; border-radius:100px; white-space:nowrap;
-  }
-  .aviso-item.atraso .aviso-etq { background:var(--erro); color:#fff; }
-  .aviso-item.vence  .aviso-etq { background:var(--ocre); color:#fff; }
-
   /* chips de situação */
   .chip { font-size:.68rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; padding:.28rem .65rem; border-radius:100px; white-space:nowrap; }
-  .chip.em-dia    { background:#DCE9E1; color:var(--verde-600); }
-  .chip.atencao   { background:var(--ocre-bg); color:var(--ocre); }
-  .chip.atrasado  { background:var(--erro-bg); color:var(--erro); }
-  .chip.completo  { background:var(--verde-600); color:#fff; }
-  .chip.encerrado { background:var(--areia-2); color:var(--texto-suave); }
+  .chip.completa  { background:var(--verde-600); color:#fff; }
+  .chip.no-prazo  { background:#DCE9E1; color:var(--verde-600); }
+  .chip.apertado  { background:var(--ocre-bg); color:var(--ocre); }
+  .chip.risco     { background:var(--erro-bg); color:var(--erro); }
+  .chip.encerrada { background:var(--areia-2); color:var(--texto-suave); }
+
+  /* checklist */
+  .check-item {
+    display:grid; grid-template-columns:auto 1fr auto; gap:1rem; align-items:center;
+    padding:.95rem 1.1rem; border:1px solid var(--areia-3); border-radius:4px;
+    margin-bottom:.6rem; background:var(--areia); transition:160ms;
+  }
+  .check-item.ok       { border-color:#BFD4C7; background:#EDF5F0; }
+  .check-item.apertado { border-color:#E3CD9C; background:var(--ocre-bg); }
+  .check-item.perdido  { border-color:#E0BBAC; background:var(--erro-bg); }
+  .marca-ok {
+    width:26px; height:26px; border-radius:50%; display:grid; place-content:center;
+    border:2px solid var(--areia-3); background:#fff;
+    font-size:.85rem; font-weight:700; color:transparent;
+  }
+  .check-item.ok .marca-ok      { background:var(--verde-600); border-color:var(--verde-600); color:#fff; }
+  .check-item.perdido .marca-ok { background:var(--erro); border-color:var(--erro); color:#fff; }
+  .check-txt strong { display:block; font-size:.95rem; font-weight:600; }
+  .check-txt small  { display:block; font-size:.78rem; color:var(--texto-suave); margin-top:.15rem; }
+  .check-item.perdido .check-txt small { color:var(--erro); }
+  .check-item.apertado .check-txt small { color:var(--ocre); }
+
+  .contador { display:flex; align-items:center; gap:.35rem; }
+  .contador button {
+    width:31px; height:31px; border-radius:4px; border:1px solid var(--areia-3);
+    background:#fff; font:inherit; font-size:1.05rem; line-height:1; cursor:pointer; color:var(--texto-suave);
+  }
+  .contador button:hover:not(:disabled) { border-color:var(--verde-600); color:var(--verde-600); }
+  .contador button:disabled { opacity:.35; cursor:default; }
+  .contador b { min-width:56px; text-align:center; font-family:'Fraunces',serif; font-weight:400; font-size:1.15rem; }
+
+  .vac-linha { display:flex; gap:.5rem; flex-wrap:wrap; }
+  .vac-chip {
+    font:inherit; font-size:.8rem; font-weight:600; padding:.5rem 1rem;
+    border-radius:100px; border:1px solid var(--areia-3); background:#fff;
+    color:var(--texto-suave); cursor:pointer; transition:150ms;
+  }
+  .vac-chip:hover { border-color:var(--verde-400); }
+  .vac-chip.on { background:var(--verde-600); border-color:var(--verde-600); color:#fff; }
+
+  /* barras */
+  .trilho { background:var(--areia-2); border-radius:100px; overflow:hidden; }
+  .trilho i { display:block; height:100%; border-radius:100px; transition:width 600ms cubic-bezier(.22,.61,.36,1); }
+  .barra-lin { display:grid; grid-template-columns:1fr auto; gap:.4rem 1rem; align-items:center; padding:.85rem 0; border-bottom:1px solid var(--areia-2); }
+  .barra-lin:last-child { border-bottom:0; }
 
   /* tabela */
   .tabela-wrap { overflow-x:auto; }
@@ -112,10 +132,11 @@
   td { padding:.85rem .8rem; border-bottom:1px solid var(--areia-2); vertical-align:middle; }
   tr.linha { cursor:pointer; transition:120ms; }
   tr.linha:hover { background:var(--areia); }
-  .mini-prog { display:flex; align-items:center; gap:.6rem; min-width:130px; }
-  .mini-prog .trilho { flex:1; height:5px; background:var(--areia-2); border-radius:100px; overflow:hidden; }
-  .mini-prog .trilho i { display:block; height:100%; background:var(--verde-400); border-radius:100px; }
-  .mini-prog small { font-size:.74rem; color:var(--texto-suave); white-space:nowrap; }
+  .pontos { font-family:'Fraunces',serif; font-size:1.15rem; }
+  .pastilhas { display:flex; gap:4px; }
+  .pastilhas i { width:16px; height:8px; border-radius:2px; background:var(--areia-2); }
+  .pastilhas i.on { background:var(--verde-600); }
+  .pastilhas i.mal { background:#E0BBAC; }
 
   /* formulários */
   .campo { margin-bottom:1.1rem; }
@@ -126,8 +147,7 @@
   }
   input:focus, select:focus, textarea:focus { outline:none; border-color:var(--verde-400); box-shadow:0 0 0 3px rgba(74,133,112,.14); }
   .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:0 1.2rem; }
-  .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:0 1.2rem; }
-  @media (max-width:640px){ .grid2,.grid3 { grid-template-columns:1fr; } }
+  @media (max-width:640px){ .grid2 { grid-template-columns:1fr; } }
 
   button.btn {
     display:inline-flex; align-items:center; gap:.5rem;
@@ -141,29 +161,6 @@
   .btn-linha:hover { border-color:var(--verde-600); color:var(--verde-600); }
   .btn-remover { background:transparent; border-color:#E0BBAC; color:var(--erro); padding:.4rem .8rem; font-size:.66rem; }
   .btn-remover:hover { background:var(--erro-bg); }
-
-  /* linha do tempo da criança */
-  .passos { display:grid; grid-template-columns:repeat(9,minmax(88px,1fr)); overflow-x:auto; padding:1rem 0 .4rem; }
-  .passo { position:relative; text-align:center; padding:0 .3rem; }
-  .passo::before { content:''; position:absolute; top:15px; left:-50%; width:100%; height:2px; background:var(--areia-3); }
-  .passo:first-child::before { display:none; }
-  .p-dot {
-    position:relative; z-index:1;
-    display:inline-grid; place-content:center;
-    width:32px; height:32px; border-radius:50%;
-    background:#fff; border:2px solid var(--areia-3);
-    font-size:.8rem; font-weight:700;
-  }
-  .passo.feito .p-dot   { background:var(--verde-600); border-color:var(--verde-600); color:#fff; }
-  .passo.aberto .p-dot  { background:var(--ocre-bg); border-color:var(--ocre); color:var(--ocre); }
-  .passo.perdido .p-dot { background:var(--erro-bg); border-color:#D3A18E; color:var(--erro); }
-  .passo strong { display:block; font-size:.72rem; font-weight:600; margin-top:.5rem; }
-  .passo small { display:block; font-size:.66rem; color:var(--texto-suave); margin-top:.1rem; }
-
-  .badge30 { display:inline-flex; align-items:center; gap:.5rem; font-size:.8rem; padding:.5rem .9rem; border-radius:4px; margin:.25rem .5rem .25rem 0; border:1px solid var(--areia-3); background:var(--areia); }
-  .badge30.ok      { border-color:#BFD4C7; background:#E7F0EA; color:var(--verde-600); }
-  .badge30.pend    { border-color:#E3CD9C; background:var(--ocre-bg); color:var(--ocre); }
-  .badge30.falhou  { border-color:#E0BBAC; background:var(--erro-bg); color:var(--erro); }
 
   #aviso-toast {
     position:fixed; right:1.5rem; bottom:1.5rem; z-index:50;
@@ -181,7 +178,7 @@
 <div id="login">
   <form class="login-card" onsubmit="entrar(event)">
     <h1>Puericultura</h1>
-    <p>Acompanhamento de crianças até 2 anos. Área restrita.</p>
+    <p>Checklist das consultas até 2 anos. Área restrita.</p>
     <div class="campo">
       <label for="senha">Senha</label>
       <input type="password" id="senha" autocomplete="current-password" required />
@@ -210,34 +207,32 @@
 
 <script>
 /* ════════════════════════════════════════════════════════════════
-   Motor de acompanhamento — puericultura
-   Espelha as 5 práticas do painel de indicadores da APS:
-     1ª consulta <30d · 9 puericulturas · 9 antropometrias
-     visita ACS <30d e aos 6m · vacinas
-   Cada marco tem janela [ini,fim] em dias de vida.
+   Checklist de puericultura até 2 anos.
+
+   Espelha o relatório oficial "Lista de Crianças (Desenvolvimento
+   Infantil)": 5 critérios de 0,20 cada, somando a pontuação de 0 a 1.
+   Peso e altura não são digitados aqui — só a CONTAGEM de consultas
+   que tiveram medida, que é o que o indicador cobra.
    ════════════════════════════════════════════════════════════════ */
 
-const MARCOS = [
-  { id:'sem1', rotulo:'1ª semana', alvoDias:7,   ini:0,   fim:30  },
-  { id:'m1',   rotulo:'1 mês',     alvoDias:30,  ini:16,  fim:75  },
-  { id:'m2',   rotulo:'2 meses',   alvoDias:61,  ini:46,  fim:107 },
-  { id:'m4',   rotulo:'4 meses',   alvoDias:122, ini:107, fim:168 },
-  { id:'m6',   rotulo:'6 meses',   alvoDias:183, ini:168, fim:244 },
-  { id:'m9',   rotulo:'9 meses',   alvoDias:274, ini:244, fim:335 },
-  { id:'m12',  rotulo:'12 meses',  alvoDias:365, ini:335, fim:470 },
-  { id:'m18',  rotulo:'18 meses',  alvoDias:548, ini:470, fim:650 },
-  { id:'m24',  rotulo:'24 meses',  alvoDias:730, ini:650, fim:800 }
-];
-const LIMITE_ACOMP = 800;
-const VISITA_6M = { ini: 150, fim: 240 };   // janela da visita do ACS aos 6 meses
-const TIPOS = { enfermeiro:'Enfermeiro', medico:'Médico', acs:'ACS (visita domiciliar)' };
+const PRAZO_2A   = 730;   // dias de vida em que a criança completa 2 anos
+const META_CONS  = 9;     // consultas de puericultura até 2 anos
+const PRAZO_30D  = 30;    // 1ª consulta e 1ª visita domiciliar
+const PRAZO_VIS6 = 240;   // limite da visita domiciliar de 6 meses
 
-const PRATICAS = [
-  { id:'consulta30',  rotulo:'1ª consulta antes de 30 dias' },
-  { id:'puericult9',  rotulo:'9 puericulturas' },
-  { id:'antropo9',    rotulo:'9 avaliações antropométricas' },
-  { id:'visitas',     rotulo:'Visita antes de 30 dias e 6 meses' },
-  { id:'vacinas',     rotulo:'Vacinas' }
+const VACINAS = [
+  { id:'pneumo10v', rotulo:'Pneumo 10V' },
+  { id:'penta',     rotulo:'Pentavalente' },
+  { id:'vip',       rotulo:'VIP' },
+  { id:'scr',       rotulo:'Tríplice viral' }
+];
+
+const CRITERIOS = [
+  { id:'visitas',  rotulo:'Visita domiciliar até 30 dias e aos 6 meses' },
+  { id:'cons30d',  rotulo:'1ª consulta até 30 dias de vida' },
+  { id:'cons2a',   rotulo:'9 consultas até 2 anos' },
+  { id:'pesalt2a', rotulo:'9 consultas com peso e altura' },
+  { id:'vacinas',  rotulo:'Vacinas do calendário em dia' }
 ];
 
 let P = null, VIEW = 'visao', SEL = null, EDITANDO = null, BUSCA = '';
@@ -246,140 +241,94 @@ const HOJE = new Date(); HOJE.setHours(0,0,0,0);
 const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const dataISO = d => d.toISOString().slice(0,10);
 const fmt = iso => { const [a,m,d] = iso.split('-'); return `${d}/${m}/${a}`; };
-const pct = (n, d) => d ? Math.round(n / d * 100) : null;
+const pct = (n, d) => d ? Math.round(n / d * 100) : 0;
+const corPct = v => v >= 70 ? '#1E5340' : v >= 40 ? '#9A6F23' : '#A34A31';
+const dias = n => n + (Math.abs(n) === 1 ? ' dia' : ' dias');
 
-function diasDeVida(nasc, ref = HOJE) {
-  return Math.round((ref - new Date(nasc + 'T00:00:00')) / 86400000);
+function diasDeVida(nasc) {
+  return Math.round((HOJE - new Date(nasc + 'T00:00:00')) / 86400000);
 }
 
-function idadeTxt(dias) {
-  if (dias < 0) return '—';
-  if (dias < 60) return dias + (dias === 1 ? ' dia' : ' dias');
-  const m = Math.floor(dias / 30.44);
+function idadeTxt(d) {
+  if (d < 0) return '—';
+  if (d < 60) return dias(d);
+  const m = Math.floor(d / 30.44);
   if (m < 24) return m + ' meses';
   const a = Math.floor(m / 12), r = m % 12;
   return a + (a > 1 ? ' anos' : ' ano') + (r ? ` e ${r} m` : '');
 }
 
-const temAntropo = a => a.peso != null && a.peso !== '' && a.altura != null && a.altura !== '';
+const num = (c, k) => Math.max(0, Number(c[k]) || 0);
+
+/* Um item do checklist. `restam` é quanto falta do prazo, em dias.
+   apertado = ainda dá, mas sobra menos de 30 dias por consulta faltante. */
+function item(id, rotulo, feito, meta, restam, un) {
+  const ok = feito >= meta;
+  const faltam = Math.max(0, meta - feito);
+  const quantas = `falta${faltam > 1 ? 'm' : ''} ${faltam} ${faltam > 1 ? un[1] : un[0]}`;
+  let st = 'ok', nota;
+  if (ok) {
+    nota = 'cumprido';
+  } else if (restam <= 0) {
+    st = 'perdido';
+    nota = `prazo vencido há ${dias(-restam)} — ${quantas}`;
+  } else {
+    const folga = restam / faltam;
+    st = folga < 30 ? 'apertado' : 'aberto';
+    nota = `${quantas} · ${dias(restam)} de prazo`;
+  }
+  return { id, rotulo, feito, meta, faltam, restam, st, ok, nota };
+}
 
 function avaliar(c) {
   const idade = diasDeVida(c.nascimento);
-  const todos = (c.atendimentos || [])
-    .map((a, ix) => ({ ...a, ix, dias: diasDeVida(c.nascimento, new Date(a.data + 'T00:00:00')) }))
-    .sort((x, y) => x.dias - y.dias);
-  const consultas = todos.filter(a => a.tipo !== 'acs');
-  const visitasACS = todos.filter(a => a.tipo === 'acs');
+  const ate2a = PRAZO_2A - idade;
+  const vac = c.vacinas || {};
+  const vacFeitas = VACINAS.filter(v => vac[v.id]).length;
 
-  // ── 9 puericulturas + 9 antropometrias ──
-  const usadas = new Set();
-  const marcos = MARCOS.map(m => {
-    let st = 'futuro', feito = null;
-    const i = consultas.findIndex((k, ix) => !usadas.has(ix) && k.dias >= m.ini && k.dias <= m.fim);
-    if (i >= 0) { usadas.add(i); st = 'feito'; feito = consultas[i]; }
-    else if (idade > m.fim) st = 'perdido';
-    else if (idade >= m.ini) st = 'aberto';
-    return { ...m, st, feito, comAntropo: !!(feito && temAntropo(feito)),
-             vence: m.fim - idade, atraso: idade - m.fim };
-  });
-  const feitos    = marcos.filter(m => m.st === 'feito').length;
-  const antropos  = marcos.filter(m => m.comAntropo).length;
-  const esperados = MARCOS.filter(m => m.alvoDias <= idade).length;
+  // a visita de 30 dias é irrecuperável; a de 6 meses vence aos 240 dias
+  const vis30 = num(c, 'vis30d'), vis6 = num(c, 'vis6m');
+  const visitas = item('visitas', 'Visita domiciliar até 30 dias e aos 6 meses',
+    (vis30 ? 1 : 0) + (vis6 ? 1 : 0), 2,
+    vis30 ? PRAZO_VIS6 - idade : Math.min(PRAZO_30D - idade, PRAZO_VIS6 - idade), ['visita','visitas']);
+  visitas.detalhe = `até 30 dias: ${vis30 ? vis30 : 'nenhuma'} · aos 6 meses: ${vis6 ? vis6 : 'nenhuma'}`;
 
-  // ── 1ª consulta em até 30 dias ──
-  const primCons = consultas[0] || null;
-  const consulta30 = primCons
-    ? { st: primCons.dias <= 30 ? 'ok' : 'falhou', dias: primCons.dias }
-    : { st: idade > 30 ? 'falhou' : 'pend', vence: 30 - idade };
+  const itens = [
+    visitas,
+    item('cons30d',  '1ª consulta até 30 dias de vida',  num(c,'cons30d') ? 1 : 0, 1, PRAZO_30D - idade, ['consulta','consultas']),
+    item('cons2a',   '9 consultas até 2 anos',           num(c,'cons2a'),   META_CONS, ate2a, ['consulta','consultas']),
+    item('pesalt2a', '9 consultas com peso e altura',    num(c,'pesalt2a'), META_CONS, ate2a, ['com medida','com medida']),
+    item('vacinas',  'Vacinas do calendário em dia',     vacFeitas, VACINAS.length, ate2a, ['vacina','vacinas'])
+  ];
 
-  // ── visitas do ACS: até 30 dias e por volta dos 6 meses ──
-  const v30 = visitasACS.find(v => v.dias <= 30);
-  const visita30 = v30
-    ? { st:'ok', dias: v30.dias }
-    : { st: idade > 30 ? 'falhou' : 'pend', vence: 30 - idade };
-  const v6 = visitasACS.find(v => v.dias >= VISITA_6M.ini && v.dias <= VISITA_6M.fim);
-  const visita6m = v6
-    ? { st:'ok', dias: v6.dias }
-    : idade > VISITA_6M.fim ? { st:'falhou' }
-    : idade >= VISITA_6M.ini ? { st:'aberto', vence: VISITA_6M.fim - idade }
-    : { st:'futuro', abre: VISITA_6M.ini - idade };
-
-  // ── vacinas ──
-  const vac = (c.vacinas && c.vacinas.situacao) || 'nao-verificado';
-
-  // ── contribuição de cada prática (feito / devido) ──
-  const praticas = {
-    consulta30: idade > 30 ? { feito: consulta30.st === 'ok' ? 1 : 0, devido: 1 } : { feito: 0, devido: 0 },
-    puericult9: { feito: feitos,   devido: esperados },
-    antropo9:   { feito: antropos, devido: esperados },
-    visitas: {
-      feito: (visita30.st === 'ok' ? 1 : 0) + (visita6m.st === 'ok' ? 1 : 0),
-      devido: (idade > 30 ? 1 : 0) + (idade > VISITA_6M.fim ? 1 : 0)
-    },
-    vacinas: vac === 'nao-verificado' ? { feito: 0, devido: 0 } : { feito: vac === 'em-dia' ? 1 : 0, devido: 1 }
-  };
-
-  // ── avisos acionáveis ──
-  const avisos = [];
-  if (idade <= LIMITE_ACOMP) {
-    if (consulta30.st === 'pend' && !primCons)
-      avisos.push({ tipo:'vence', dias: consulta30.vence, texto:'1ª consulta (até 30 dias de vida)' });
-    if (consulta30.st === 'falhou' && !primCons)
-      avisos.push({ tipo:'atraso', dias: idade - 30, texto:'1ª consulta não realizada até 30 dias' });
-
-    if (visita30.st === 'pend')
-      avisos.push({ tipo:'vence', dias: visita30.vence, texto:'Visita do ACS (até 30 dias)' });
-    if (visita30.st === 'falhou')
-      avisos.push({ tipo:'atraso', dias: idade - 30, texto:'Visita do ACS de 30 dias não realizada' });
-    if (visita6m.st === 'aberto')
-      avisos.push({ tipo:'vence', dias: visita6m.vence, texto:'Visita do ACS de 6 meses' });
-    if (visita6m.st === 'falhou' && !visitasACS.some(v => v.dias > VISITA_6M.fim))
-      avisos.push({ tipo:'atraso', dias: idade - VISITA_6M.fim, texto:'Visita do ACS de 6 meses não realizada' });
-
-    if (vac === 'atraso')
-      avisos.push({ tipo:'atraso', dias: 0, texto:'Vacinas em atraso' });
-    if (vac === 'nao-verificado' && idade > 45)
-      avisos.push({ tipo:'vence', dias: 0, texto:'Cartão vacinal não verificado' });
-
-    marcos.forEach(m => {
-      if (m.st === 'aberto')
-        avisos.push({ tipo:'vence', dias: m.vence, texto:`Consulta de ${m.rotulo}` });
-      else if (m.st === 'perdido' && !todos.some(a => a.dias > m.fim))
-        avisos.push({ tipo:'atraso', dias: m.atraso, texto:`Consulta de ${m.rotulo} não realizada` });
-      else if (m.st === 'feito' && !m.comAntropo)
-        avisos.push({ tipo:'vence', dias: 999, texto:`Sem peso/altura na consulta de ${m.rotulo}` });
-    });
-  }
+  const cumpridos = itens.filter(i => i.ok).length;
+  const pontuacao = cumpridos * 0.2;
 
   let status;
-  if (feitos === 9 && antropos === 9) status = 'completo';
-  else if (idade > LIMITE_ACOMP) status = 'encerrado';
-  else if (avisos.some(a => a.tipo === 'atraso')) status = 'atrasado';
-  else if (avisos.length) status = 'atencao';
-  else status = 'em-dia';
+  if (cumpridos === 5) status = 'completa';
+  else if (ate2a <= 0) status = 'encerrada';
+  else if (itens.some(i => i.st === 'perdido')) status = 'risco';
+  else if (itens.some(i => i.st === 'apertado')) status = 'apertado';
+  else status = 'no-prazo';
 
-  return { idade, marcos, feitos, antropos, esperados, consulta30, visita30, visita6m,
-           vac, praticas, avisos, status, todos, visitasACS };
+  return { idade, ate2a, itens, cumpridos, pontuacao, status,
+           por: Object.fromEntries(itens.map(i => [i.id, i])) };
 }
 
 const ROTULO_STATUS = {
-  'em-dia':'Em dia', 'atencao':'A vencer', 'atrasado':'Em atraso',
-  'completo':'Completa', 'encerrado':'Encerrada'
+  completa:'Completa', 'no-prazo':'No prazo', apertado:'Apertado',
+  risco:'Em risco', encerrada:'Encerrada'
 };
-const ROTULO_VAC = { 'em-dia':'Vacinas em dia', 'atraso':'Vacinas em atraso', 'nao-verificado':'Cartão não verificado' };
 
+/* O que fazer primeiro: item aberto com menos folga por unidade faltante. */
 function proximoPasso(av) {
-  const reais = av.avisos.filter(a => a.dias !== 999);
-  if (reais.length) {
-    const a = [...reais].sort((x,y) =>
-      (x.tipo==='atraso'?0:1) - (y.tipo==='atraso'?0:1) || x.dias - y.dias)[0];
-    if (a.dias === 0) return a.texto;
-    return a.tipo === 'atraso' ? `${a.texto} · há ${a.dias}d` : `${a.texto} · em ${a.dias}d`;
-  }
-  if (av.avisos.length) return av.avisos[0].texto;
-  const prox = av.marcos.find(m => m.st === 'futuro');
-  if (prox) return `${prox.rotulo} abre em ${prox.ini - av.idade}d`;
-  return '—';
+  const abertos = av.itens.filter(i => !i.ok);
+  if (!abertos.length) return 'Nada pendente — pontuação cheia.';
+  const p = [...abertos].sort((a, b) => {
+    if ((a.restam <= 0) !== (b.restam <= 0)) return a.restam <= 0 ? 1 : -1;
+    return (a.restam / a.faltam) - (b.restam / b.faltam);
+  })[0];
+  return `${p.rotulo} — ${p.nota}`;
 }
 
 /* ── Sessão e dados ────────────────────────────────────────────── */
@@ -409,8 +358,7 @@ async function salvar() {
   const r = await fetch('/api/admin/pacientes', {
     method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(P)
   });
-  if (r.ok) toast('Salvo.');
-  else toast('Erro ao salvar.', true);
+  if (!r.ok) toast('Erro ao salvar.', true);
 }
 
 function toast(msg, erro = false) {
@@ -418,15 +366,19 @@ function toast(msg, erro = false) {
   t.textContent = msg;
   t.className = 'visivel' + (erro ? ' erro' : '');
   clearTimeout(t._t);
-  t._t = setTimeout(() => (t.className = ''), 2600);
+  t._t = setTimeout(() => (t.className = ''), 2400);
 }
 
 /* ── Render ────────────────────────────────────────────────────── */
 function render() {
-  const totalAvisos = P.criancas.reduce((s, c) => s + avaliar(c).avisos.length, 0);
+  const pendentes = P.criancas.filter(c => {
+    const s = avaliar(c).status;
+    return s === 'apertado' || s === 'risco';
+  }).length;
+
   document.getElementById('abas').innerHTML = `
     <button class="${VIEW==='visao'?'ativa':''}" onclick="VIEW='visao'; SEL=null; render()">
-      Visão geral${totalAvisos ? `<span class="badge">${totalAvisos}</span>` : ''}
+      Onde estou${pendentes ? `<span class="badge">${pendentes}</span>` : ''}
     </button>
     <button class="${VIEW==='lista'||VIEW==='crianca'?'ativa':''}" onclick="VIEW='lista'; SEL=null; render()">Crianças</button>
     <button class="${VIEW==='form'?'ativa':''}" onclick="VIEW='form'; EDITANDO=null; render()">+ Cadastrar</button>`;
@@ -438,125 +390,107 @@ function render() {
   else if (VIEW === 'crianca') alvo.innerHTML = telaCrianca();
 }
 
-/* ── Visão geral ───────────────────────────────────────────────── */
-function donut(segs) {
-  const total = segs.reduce((s, x) => s + x.n, 0);
-  const C = 2 * Math.PI * 62;
-  let off = 0, arcos = '';
-  segs.forEach(s => {
-    if (!s.n) return;
-    const len = s.n / (total || 1) * C;
-    arcos += `<circle r="62" cx="80" cy="80" fill="none" stroke="${s.cor}" stroke-width="24"
-      stroke-dasharray="${len - 1.5} ${C - len + 1.5}" stroke-dashoffset="${-off}"
-      transform="rotate(-90 80 80)"/>`;
-    off += len;
-  });
-  return `<svg viewBox="0 0 160 160" width="170" role="img" aria-label="Situação das crianças">
-    ${arcos || `<circle r="62" cx="80" cy="80" fill="none" stroke="#EFE7DA" stroke-width="24"/>`}
-    <text x="80" y="78" text-anchor="middle" font-size="30" font-family="Fraunces,serif" fill="#17251F">${total}</text>
-    <text x="80" y="98" text-anchor="middle" font-size="10" fill="#5D6E66">CRIANÇAS</text>
-  </svg>`;
-}
-
+/* ── Onde estou ────────────────────────────────────────────────── */
 function telaVisao() {
   const avs = P.criancas.map(c => ({ c, av: avaliar(c) }));
-  const conta = st => avs.filter(x => x.av.status === st).length;
-  const emDia = conta('em-dia'), atencao = conta('atencao'),
-        atrasado = conta('atrasado'), completo = conta('completo'), encerrado = conta('encerrado');
+  const n = avs.length;
 
-  // percentual por prática, somando feito/devido de todas as crianças
-  const indicadores = PRATICAS.map(pr => {
-    let feito = 0, devido = 0;
-    avs.forEach(({ av }) => { feito += av.praticas[pr.id].feito; devido += av.praticas[pr.id].devido; });
-    return { ...pr, feito, devido, valor: pct(feito, devido) };
+  const indicadores = CRITERIOS.map(cr => {
+    const feito = avs.filter(x => x.av.por[cr.id].ok).length;
+    return { ...cr, feito, valor: pct(feito, n) };
   });
-  const validos = indicadores.filter(i => i.valor !== null);
-  const geral = validos.length ? Math.round(validos.reduce((s, i) => s + i.valor, 0) / validos.length) : 0;
-  const corPct = v => v >= 70 ? '#1E5340' : v >= 40 ? '#9A6F23' : '#A34A31';
+  const geral = n ? Math.round(indicadores.reduce((s, i) => s + i.valor, 0) / 5) : 0;
+  const media = n ? avs.reduce((s, x) => s + x.av.pontuacao, 0) / n : 0;
 
-  const avisos = avs.flatMap(({ c, av }) => av.avisos.filter(a => a.dias !== 999).map(a => ({ ...a, c })))
-    .sort((x, y) => (x.tipo === 'atraso' ? 0 : 1) - (y.tipo === 'atraso' ? 0 : 1) ||
-                    (x.tipo === 'atraso' ? y.dias - x.dias : x.dias - y.dias));
+  const emRisco  = avs.filter(x => x.av.status === 'risco').length;
+  const apertado = avs.filter(x => x.av.status === 'apertado').length;
+  const prazos   = avs.map(x => x.av.ate2a).filter(d => d > 0);
+  const maisCurto = prazos.length ? Math.min(...prazos) : null;
+
+  // distribuição de pontuação, igual à coluna do relatório oficial
+  const faixas = [0, 1, 2, 3, 4, 5].map(k => ({
+    rotulo: (k * 0.2).toFixed(2).replace('.', ','),
+    n: avs.filter(x => x.av.cumpridos === k).length
+  }));
+  const maxFaixa = Math.max(1, ...faixas.map(f => f.n));
+
+  const fila = avs.filter(x => x.av.cumpridos < 5)
+    .sort((a, b) => a.av.ate2a - b.av.ate2a)
+    .slice(0, 12);
 
   return `
     <div class="cartoes">
-      <div class="cartao"><span>Em acompanhamento</span><strong>${P.criancas.length}</strong><small>crianças até 2 anos</small></div>
-      <div class="cartao cor-verde"><span>Em dia</span><strong>${emDia + completo}</strong><small>${completo} com acompanhamento completo</small></div>
-      <div class="cartao cor-ocre"><span>A vencer</span><strong>${atencao}</strong><small>janela aberta</small></div>
-      <div class="cartao cor-erro"><span>Em atraso</span><strong>${atrasado}</strong><small>precisam de busca ativa</small></div>
+      <div class="cartao"><span>Crianças</span><strong>${n}</strong><small>no acompanhamento</small></div>
+      <div class="cartao cor-verde"><span>Pontuação média</span><strong>${media.toFixed(2).replace('.',',')}</strong><small>de 1,00 possível</small></div>
+      <div class="cartao cor-ocre"><span>Prazo mais curto</span><strong>${maisCurto ?? '—'}</strong><small>${maisCurto != null ? 'dias para os 2 anos' : 'nenhum prazo aberto'}</small></div>
+      <div class="cartao cor-erro"><span>Precisam de você</span><strong>${emRisco + apertado}</strong><small>${emRisco} em risco · ${apertado} apertada${apertado === 1 ? '' : 's'}</small></div>
     </div>
 
     <div class="bloco">
       <div class="bloco-topo">
-        <h2>Indicadores por prática</h2>
+        <h2>Onde estou</h2>
         <div style="display:flex; align-items:baseline; gap:.6rem">
           <span class="dica">geral</span>
           <strong style="font-family:'Fraunces',serif; font-size:2rem; color:${corPct(geral)}">${geral}%</strong>
         </div>
       </div>
       ${indicadores.map(i => `
-        <div style="display:grid; grid-template-columns:1fr auto; gap:.4rem 1rem; align-items:center; padding:.85rem 0; border-bottom:1px solid var(--areia-2)">
+        <div class="barra-lin">
           <div>
             <div style="font-size:.92rem; margin-bottom:.45rem">${esc(i.rotulo)}</div>
-            <div class="trilho" style="height:7px; background:var(--areia-2); border-radius:100px; overflow:hidden">
-              <i style="display:block; height:100%; width:${i.valor ?? 0}%; background:${corPct(i.valor ?? 0)}; border-radius:100px; transition:width 600ms cubic-bezier(.22,.61,.36,1)"></i>
-            </div>
+            <div class="trilho" style="height:7px"><i style="width:${i.valor}%; background:${corPct(i.valor)}"></i></div>
           </div>
           <div style="text-align:right; min-width:96px">
-            <strong style="font-family:'Fraunces',serif; font-size:1.35rem; color:${corPct(i.valor ?? 0)}">${i.valor === null ? '—' : i.valor + '%'}</strong>
-            <small style="display:block; font-size:.72rem; color:var(--texto-suave)">${i.feito} de ${i.devido}</small>
+            <strong style="font-family:'Fraunces',serif; font-size:1.35rem; color:${corPct(i.valor)}">${i.valor}%</strong>
+            <small style="display:block; font-size:.72rem; color:var(--texto-suave)">${i.feito} de ${n}</small>
           </div>
         </div>`).join('')}
       <p class="dica" style="margin-top:1rem">
-        Cada prática compara o que foi feito com o que já era devido para a idade de cada criança.
-        O geral é a média das cinco.
+        Cada critério vale 0,20 na pontuação da criança. O percentual é quantas
+        crianças já cumpriram o critério inteiro — é assim que o relatório oficial conta.
       </p>
     </div>
 
     <div class="bloco">
       <div class="bloco-topo">
-        <h2>Atendidas × com pendência</h2>
-        <span class="dica">situação de hoje, ${fmt(dataISO(HOJE))}</span>
+        <h2>Pontuação das crianças</h2>
+        <span class="dica">hoje, ${fmt(dataISO(HOJE))}</span>
       </div>
-      <div class="visao-grid">
-        ${donut([
-          { n: completo,  cor: '#4A8570' },
-          { n: emDia,     cor: '#1E5340' },
-          { n: atencao,   cor: '#C9964F' },
-          { n: atrasado,  cor: '#A34A31' },
-          { n: encerrado, cor: '#C9BFAE' }
-        ])}
-        <div class="legenda">
-          <span><i style="background:#4A8570"></i>Acompanhamento completo — <strong>${completo}</strong></span>
-          <span><i style="background:#1E5340"></i>Em dia — <strong>${emDia}</strong></span>
-          <span><i style="background:#C9964F"></i>A vencer — <strong>${atencao}</strong></span>
-          <span><i style="background:#A34A31"></i>Em atraso — <strong>${atrasado}</strong></span>
-          ${encerrado ? `<span><i style="background:#C9BFAE"></i>Encerradas sem completar — <strong>${encerrado}</strong></span>` : ''}
-          <span class="dica" style="margin-top:.4rem">${emDia + completo} atendida${emDia+completo===1?'':'s'} em dia · ${atencao + atrasado} com pendência</span>
-        </div>
-      </div>
+      ${faixas.map(f => `
+        <div style="display:grid; grid-template-columns:44px 1fr 30px; gap:.9rem; align-items:center; margin-bottom:.5rem">
+          <span style="font-family:'Fraunces',serif; font-size:1rem; color:var(--texto-suave)">${f.rotulo}</span>
+          <div class="trilho" style="height:16px; border-radius:3px">
+            <i style="width:${f.n / maxFaixa * 100}%; border-radius:3px; background:${corPct(parseFloat(f.rotulo.replace(',','.')) * 100)}"></i>
+          </div>
+          <strong style="font-family:'Fraunces',serif">${f.n}</strong>
+        </div>`).join('')}
+      <p class="dica" style="margin-top:.9rem">Quantas crianças estão em cada pontuação. Cada consulta que você registra empurra alguém para a barra de cima.</p>
     </div>
 
     <div class="bloco">
       <div class="bloco-topo">
-        <h2>Avisos</h2>
-        <span class="dica">${avisos.length ? avisos.length + ' pendência' + (avisos.length>1?'s':'') : 'nenhuma pendência'}</span>
+        <h2>Fila por prazo</h2>
+        <span class="dica">${fila.length ? 'quem vence primeiro' : 'nada pendente'}</span>
       </div>
-      ${avisos.length ? avisos.map(a => `
-        <div class="aviso-item ${a.tipo}" onclick="abrirCrianca('${a.c.id}')">
-          <strong>${esc(a.c.nome)}</strong>
-          <span>${esc(a.texto)}</span>
-          <span class="aviso-etq">${a.dias === 0 ? (a.tipo==='atraso'?'pendente':'verificar')
-            : a.tipo === 'atraso' ? `atrasada há ${a.dias}d` : `vence em ${a.dias}d`}</span>
-        </div>`).join('') : '<p class="dica">Todas as crianças estão em dia.</p>'}
+      ${fila.length ? `<div class="tabela-wrap"><table>
+        <thead><tr><th>Criança</th><th>Faz 2 anos em</th><th>Pontuação</th><th>Próximo passo</th></tr></thead>
+        <tbody>${fila.map(({ c, av }) => `
+          <tr class="linha" onclick="abrirCrianca('${c.id}')">
+            <td><strong>${esc(c.nome)}</strong></td>
+            <td>${av.ate2a > 0 ? dias(av.ate2a) : '<span style="color:var(--erro)">prazo vencido</span>'}</td>
+            <td class="pontos">${av.pontuacao.toFixed(2).replace('.',',')}</td>
+            <td style="font-size:.83rem; color:var(--texto-suave)">${esc(proximoPasso(av))}</td>
+          </tr>`).join('')}
+        </tbody></table></div>`
+        : '<p class="dica">Todas as crianças estão com a pontuação cheia.</p>'}
     </div>`;
 }
 
 /* ── Lista ─────────────────────────────────────────────────────── */
 function telaLista() {
-  const ordem = { atrasado:0, atencao:1, 'em-dia':2, completo:3, encerrado:4 };
+  const ordem = { risco:0, apertado:1, 'no-prazo':2, completa:3, encerrada:4 };
   let linhas = P.criancas.map(c => ({ c, av: avaliar(c) }))
-    .sort((x, y) => ordem[x.av.status] - ordem[y.av.status] || x.av.idade - y.av.idade);
+    .sort((x, y) => ordem[x.av.status] - ordem[y.av.status] || x.av.ate2a - y.av.ate2a);
   const termo = BUSCA.trim().toLowerCase();
   if (termo) linhas = linhas.filter(({ c }) =>
     (c.nome + ' ' + (c.mae || '')).toLowerCase().includes(termo));
@@ -571,19 +505,19 @@ function telaLista() {
       <div class="tabela-wrap">
         <table>
           <thead><tr>
-            <th>Nome</th><th>Idade</th><th>Consultas</th><th>Situação</th><th>Próximo passo</th>
+            <th>Nome</th><th>Idade</th><th>2 anos em</th><th>Critérios</th><th>Pont.</th><th>Situação</th><th>Consultas</th>
           </tr></thead>
           <tbody>
             ${linhas.map(({ c, av }) => `
               <tr class="linha" onclick="abrirCrianca('${c.id}')">
                 <td><strong>${esc(c.nome)}</strong><br><small style="color:var(--texto-suave)">mãe: ${esc(c.mae || '—')}</small></td>
                 <td>${idadeTxt(av.idade)}</td>
-                <td><div class="mini-prog">
-                  <div class="trilho"><i style="width:${(av.feitos/9*100).toFixed(0)}%"></i></div>
-                  <small>${av.feitos}/9</small>
-                </div></td>
+                <td>${av.ate2a > 0 ? dias(av.ate2a) : '—'}</td>
+                <td><div class="pastilhas">${av.itens.map(i =>
+                  `<i class="${i.ok ? 'on' : i.st === 'perdido' ? 'mal' : ''}" title="${esc(i.rotulo)}"></i>`).join('')}</div></td>
+                <td class="pontos">${av.pontuacao.toFixed(2).replace('.',',')}</td>
                 <td><span class="chip ${av.status}">${ROTULO_STATUS[av.status]}</span></td>
-                <td style="font-size:.83rem; color:var(--texto-suave)">${esc(proximoPasso(av))}</td>
+                <td>${av.por.cons2a.feito}/9</td>
               </tr>`).join('')}
           </tbody>
         </table>
@@ -594,23 +528,29 @@ function telaLista() {
 
 function abrirCrianca(id) { SEL = id; VIEW = 'crianca'; render(); window.scrollTo(0, 0); }
 
-/* ── Detalhe da criança ────────────────────────────────────────── */
+/* ── Checklist da criança ──────────────────────────────────────── */
+function linhaContador(id, campo, rotulo, detalhe, valor, st, nota) {
+  return `
+    <div class="check-item ${st}">
+      <span class="marca-ok">${st === 'ok' ? '✓' : st === 'perdido' ? '✕' : ''}</span>
+      <div class="check-txt">
+        <strong>${esc(rotulo)}</strong>
+        <small>${esc(detalhe ? detalhe + ' · ' : '')}${esc(nota)}</small>
+      </div>
+      <div class="contador">
+        <button onclick="event.stopPropagation(); mudar('${id}','${campo}',-1)" ${valor <= 0 ? 'disabled' : ''} aria-label="Tirar um">−</button>
+        <b>${valor}</b>
+        <button onclick="event.stopPropagation(); mudar('${id}','${campo}',1)" aria-label="Somar um">+</button>
+      </div>
+    </div>`;
+}
+
 function telaCrianca() {
   const c = P.criancas.find(x => x.id === SEL);
   if (!c) { VIEW = 'lista'; return telaLista(); }
   const av = avaliar(c);
-
-  const sel = (b, ok, pend, falhou) =>
-    b.st === 'ok' ? `<span class="badge30 ok">✓ ${ok}</span>`
-    : b.st === 'pend' || b.st === 'aberto' ? `<span class="badge30 pend">⏱ ${pend}</span>`
-    : b.st === 'futuro' ? `<span class="badge30">· ${pend}</span>`
-    : `<span class="badge30 falhou">✕ ${falhou}</span>`;
-
-  const pctCrianca = PRATICAS.map(pr => {
-    const x = av.praticas[pr.id];
-    return { ...pr, ...x, valor: pct(x.feito, x.devido) };
-  });
-  const corPct = v => v >= 70 ? '#1E5340' : v >= 40 ? '#9A6F23' : '#A34A31';
+  const vac = c.vacinas || {};
+  const itVac = av.por.vacinas;
 
   return `
     <button class="btn btn-linha" style="margin-bottom:1.2rem" onclick="VIEW='lista'; render()">← Todas as crianças</button>
@@ -628,174 +568,98 @@ function telaCrianca() {
         </div>
       </div>
 
-      <div style="margin-bottom:1.4rem">
-        ${sel(av.consulta30,
-              `1ª consulta com ${av.consulta30.dias} dia${av.consulta30.dias===1?'':'s'}`,
-              `1ª consulta: faltam ${av.consulta30.vence} dia${av.consulta30.vence===1?'':'s'}`,
-              av.consulta30.dias != null ? `1ª consulta só com ${av.consulta30.dias} dias` : '1ª consulta não realizada')}
-        ${sel(av.visita30,
-              `Visita ACS com ${av.visita30.dias} dia${av.visita30.dias===1?'':'s'}`,
-              `Visita ACS: faltam ${av.visita30.vence} dia${av.visita30.vence===1?'':'s'}`,
-              'Visita ACS de 30 dias não realizada')}
-        ${sel(av.visita6m,
-              `Visita ACS de 6 meses feita`,
-              av.visita6m.st === 'futuro' ? `Visita de 6 meses abre em ${av.visita6m.abre}d`
-                                          : `Visita de 6 meses: vence em ${av.visita6m.vence}d`,
-              'Visita ACS de 6 meses não realizada')}
-        <span class="badge30 ${av.vac === 'em-dia' ? 'ok' : av.vac === 'atraso' ? 'falhou' : 'pend'}">
-          ${av.vac === 'em-dia' ? '✓' : av.vac === 'atraso' ? '✕' : '⏱'} ${ROTULO_VAC[av.vac]}
-        </span>
-      </div>
-
-      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:1.5rem; padding-top:1.2rem; border-top:1px solid var(--areia-2)">
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:1.4rem">
         <div>
-          <div class="mini-prog" style="margin-bottom:.35rem">
-            <div class="trilho" style="height:8px"><i style="width:${(av.feitos/9*100).toFixed(0)}%"></i></div>
-            <small><strong>${av.feitos}</strong>/9</small>
+          <span class="dica">Pontuação</span>
+          <div style="font-family:'Fraunces',serif; font-size:2.4rem; line-height:1.1; color:${corPct(av.cumpridos * 20)}">
+            ${av.pontuacao.toFixed(2).replace('.',',')}
           </div>
-          <span class="dica">consultas de puericultura</span>
+          <span class="dica">${av.cumpridos} de 5 critérios</span>
         </div>
         <div>
-          <div class="mini-prog" style="margin-bottom:.35rem">
-            <div class="trilho" style="height:8px"><i style="width:${(av.antropos/9*100).toFixed(0)}%; background:var(--rose)"></i></div>
-            <small><strong>${av.antropos}</strong>/9</small>
+          <span class="dica">Completa 2 anos em</span>
+          <div style="font-family:'Fraunces',serif; font-size:2.4rem; line-height:1.1; color:${av.ate2a <= 0 ? 'var(--erro)' : av.ate2a < 90 ? 'var(--ocre)' : 'var(--verde-600)'}">
+            ${av.ate2a > 0 ? av.ate2a : '0'}
           </div>
-          <span class="dica">com peso e altura</span>
+          <span class="dica">${av.ate2a > 0 ? 'dias de prazo' : 'prazo encerrado'}</span>
         </div>
         <div>
-          <span class="dica">esperadas para a idade</span>
-          <div style="font-family:'Fraunces',serif; font-size:1.5rem; margin-top:.2rem">${av.esperados}</div>
+          <span class="dica">Próximo passo</span>
+          <p style="margin:.35rem 0 0; font-size:.9rem">${esc(proximoPasso(av))}</p>
         </div>
       </div>
     </div>
 
     <div class="bloco">
-      <div class="bloco-topo"><h2>Práticas desta criança</h2></div>
-      ${pctCrianca.map(i => `
-        <div style="display:grid; grid-template-columns:1fr auto; gap:.4rem 1rem; align-items:center; padding:.7rem 0; border-bottom:1px solid var(--areia-2)">
-          <div>
-            <div style="font-size:.9rem; margin-bottom:.4rem">${esc(i.rotulo)}</div>
-            <div class="trilho" style="height:6px; background:var(--areia-2); border-radius:100px; overflow:hidden">
-              <i style="display:block; height:100%; width:${i.valor ?? 0}%; background:${corPct(i.valor ?? 0)}; border-radius:100px"></i>
-            </div>
-          </div>
-          <div style="text-align:right; min-width:88px">
-            <strong style="font-family:'Fraunces',serif; font-size:1.2rem; color:${corPct(i.valor ?? 0)}">${i.valor === null ? '—' : i.valor + '%'}</strong>
-            <small style="display:block; font-size:.7rem; color:var(--texto-suave)">${i.devido ? i.feito + ' de ' + i.devido : 'ainda não devida'}</small>
-          </div>
-        </div>`).join('')}
-    </div>
-
-    <div class="bloco">
-      <div class="bloco-topo"><h2>Linha do tempo</h2></div>
-      <div class="passos">
-        ${av.marcos.map(m => `
-          <div class="passo ${m.st}">
-            <span class="p-dot">${m.st==='feito' ? (m.comAntropo ? '✓' : '!') : m.st==='perdido' ? '✕' : ''}</span>
-            <strong>${m.rotulo}</strong>
-            <small>${
-              m.st==='feito'   ? fmt(m.feito.data) + (m.comAntropo ? '' : ' · s/ medidas') :
-              m.st==='aberto'  ? `vence em ${m.vence}d` :
-              m.st==='perdido' ? 'perdida' :
-              `abre em ${m.ini - av.idade}d`
-            }</small>
-          </div>`).join('')}
+      <div class="bloco-topo">
+        <h2>Checklist até os 2 anos</h2>
+        <span class="dica">clique em + a cada atendimento</span>
       </div>
-      <p class="dica" style="margin-top:.8rem">
-        <i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--verde-600)"></i> feita com peso e altura &nbsp;
-        <i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--ocre)"></i> janela aberta, ou feita sem medidas &nbsp;
-        <i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#D3A18E"></i> perdida &nbsp;
-        <i style="display:inline-block;width:10px;height:10px;border-radius:50%;border:1.5px solid var(--areia-3)"></i> futura
+
+      ${linhaContador(c.id, 'vis30d', 'Visita domiciliar até 30 dias',
+        null, num(c,'vis30d'),
+        num(c,'vis30d') ? 'ok' : av.idade > PRAZO_30D ? 'perdido' : 'aberto',
+        num(c,'vis30d') ? 'cumprida' : av.idade > PRAZO_30D
+          ? `prazo vencido há ${dias(av.idade - PRAZO_30D)}`
+          : `${dias(PRAZO_30D - av.idade)} de prazo`)}
+
+      ${linhaContador(c.id, 'vis6m', 'Visita domiciliar aos 6 meses',
+        null, num(c,'vis6m'),
+        num(c,'vis6m') ? 'ok' : av.idade > PRAZO_VIS6 ? 'perdido' : 'aberto',
+        num(c,'vis6m') ? 'cumprida' : av.idade > PRAZO_VIS6
+          ? `prazo vencido há ${dias(av.idade - PRAZO_VIS6)}`
+          : `${dias(PRAZO_VIS6 - av.idade)} de prazo`)}
+
+      ${linhaContador(c.id, 'cons30d', '1ª consulta até 30 dias de vida',
+        null, num(c,'cons30d'), av.por.cons30d.st, av.por.cons30d.nota)}
+
+      ${linhaContador(c.id, 'cons2a', 'Consultas de puericultura',
+        `${num(c,'cons2a')} de 9`, num(c,'cons2a'), av.por.cons2a.st, av.por.cons2a.nota)}
+
+      ${linhaContador(c.id, 'pesalt2a', 'Medições de peso e altura',
+        `${num(c,'pesalt2a')} de 9`, num(c,'pesalt2a'), av.por.pesalt2a.st, av.por.pesalt2a.nota)}
+
+      <div class="check-item ${itVac.st}" style="grid-template-columns:auto 1fr">
+        <span class="marca-ok">${itVac.ok ? '✓' : itVac.st === 'perdido' ? '✕' : ''}</span>
+        <div class="check-txt">
+          <strong>Vacinas do calendário</strong>
+          <small>${esc(itVac.nota)}</small>
+          <div class="vac-linha" style="margin-top:.7rem">
+            ${VACINAS.map(v => `
+              <button class="vac-chip ${vac[v.id] ? 'on' : ''}" onclick="alternarVacina('${c.id}','${v.id}')">
+                ${vac[v.id] ? '✓ ' : ''}${esc(v.rotulo)}
+              </button>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <p class="dica" style="margin-top:1rem">
+        Peso e altura você já lança no e-SUS — aqui entra só quantas medições simultâneas
+        a criança tem, que é o que o indicador cobra.
       </p>
-    </div>
-
-    <div class="bloco">
-      <div class="bloco-topo"><h2>Registrar atendimento</h2></div>
-      <div class="grid3">
-        <div class="campo">
-          <label for="at-data">Data</label>
-          <input type="date" id="at-data" value="${dataISO(HOJE)}" min="${c.nascimento}" max="${dataISO(HOJE)}" />
-        </div>
-        <div class="campo">
-          <label for="at-tipo">Tipo</label>
-          <select id="at-tipo">
-            <option value="enfermeiro">Enfermeiro</option>
-            <option value="medico">Médico</option>
-            <option value="acs">ACS (visita domiciliar)</option>
-          </select>
-        </div>
-        <div class="campo">
-          <label for="at-obs">Observação</label>
-          <input type="text" id="at-obs" placeholder="opcional" />
-        </div>
-      </div>
-      <div class="grid3">
-        <div class="campo">
-          <label for="at-peso">Peso (kg)</label>
-          <input type="number" step="0.01" id="at-peso" placeholder="ex.: 6,70" />
-        </div>
-        <div class="campo">
-          <label for="at-altura">Altura (cm)</label>
-          <input type="number" step="0.1" id="at-altura" placeholder="ex.: 63,5" />
-        </div>
-        <div></div>
-      </div>
-      <p class="dica" style="margin:-.4rem 0 1rem">Peso e altura contam para o indicador de avaliação antropométrica. Em visita do ACS, deixe em branco.</p>
-      <button class="btn btn-verde" onclick="registrarAtendimento('${c.id}')">Registrar</button>
-    </div>
-
-    <div class="bloco">
-      <div class="bloco-topo"><h2>Histórico</h2><span class="dica">${av.todos.length} registro${av.todos.length===1?'':'s'}</span></div>
-      ${av.todos.length ? `<div class="tabela-wrap"><table>
-        <thead><tr><th>Data</th><th>Idade</th><th>Tipo</th><th>Peso</th><th>Altura</th><th>Observação</th><th></th></tr></thead>
-        <tbody>
-          ${[...av.todos].reverse().map(a => `
-            <tr>
-              <td>${fmt(a.data)}</td>
-              <td>${idadeTxt(a.dias)}</td>
-              <td>${TIPOS[a.tipo] || esc(a.tipo)}</td>
-              <td>${a.peso != null && a.peso !== '' ? esc(a.peso) + ' kg' : '—'}</td>
-              <td>${a.altura != null && a.altura !== '' ? esc(a.altura) + ' cm' : '—'}</td>
-              <td style="color:var(--texto-suave)">${esc(a.obs || '—')}</td>
-              <td style="text-align:right"><button class="btn btn-remover" onclick="excluirAtendimento('${c.id}', ${a.ix})">×</button></td>
-            </tr>`).join('')}
-        </tbody></table></div>` : '<p class="dica">Nenhum atendimento registrado.</p>'}
     </div>
 
     <button class="btn btn-remover" onclick="excluirCrianca('${c.id}')">Excluir criança</button>`;
 }
 
-async function registrarAtendimento(id) {
+async function mudar(id, campo, delta) {
   const c = P.criancas.find(x => x.id === id);
-  const data = document.getElementById('at-data').value;
-  if (!data) return toast('Informe a data.', true);
-  if (data < c.nascimento) return toast('Data anterior ao nascimento.', true);
-  const peso = document.getElementById('at-peso').value;
-  const altura = document.getElementById('at-altura').value;
-  const reg = {
-    data,
-    tipo: document.getElementById('at-tipo').value,
-    obs: document.getElementById('at-obs').value.trim()
-  };
-  if (peso !== '') reg.peso = parseFloat(peso);
-  if (altura !== '') reg.altura = parseFloat(altura);
-  c.atendimentos = c.atendimentos || [];
-  c.atendimentos.push(reg);
-  await salvar();
+  c[campo] = Math.max(0, num(c, campo) + delta);
   render();
+  await salvar();
 }
 
-async function excluirAtendimento(id, ix) {
-  if (!confirm('Excluir este registro?')) return;
+async function alternarVacina(id, vid) {
   const c = P.criancas.find(x => x.id === id);
-  c.atendimentos.splice(ix, 1);
-  await salvar();
+  c.vacinas = c.vacinas || {};
+  c.vacinas[vid] = !c.vacinas[vid];
   render();
+  await salvar();
 }
 
 async function excluirCrianca(id) {
   const c = P.criancas.find(x => x.id === id);
-  if (!confirm(`Excluir ${c.nome} e todo o histórico?`)) return;
+  if (!confirm(`Excluir ${c.nome}?`)) return;
   P.criancas = P.criancas.filter(x => x.id !== id);
   SEL = null; VIEW = 'lista';
   await salvar();
@@ -821,19 +685,8 @@ function telaForm() {
         <div class="campo"><label>Telefone</label><input id="f-tel" value="${esc(c?.telefone || '')}" /></div>
         <div class="campo"><label>Microárea</label><input id="f-micro" value="${esc(c?.microarea || '')}" /></div>
       </div>
-      <div class="grid2">
-        <div class="campo"><label>Situação vacinal</label>
-          <select id="f-vac">
-            <option value="nao-verificado" ${(c?.vacinas?.situacao||'nao-verificado')==='nao-verificado'?'selected':''}>Não verificado</option>
-            <option value="em-dia" ${c?.vacinas?.situacao==='em-dia'?'selected':''}>Em dia</option>
-            <option value="atraso" ${c?.vacinas?.situacao==='atraso'?'selected':''}>Em atraso</option>
-          </select>
-        </div>
-        <div class="campo"><label>Verificado em</label>
-          <input type="date" id="f-vacdata" max="${dataISO(HOJE)}" value="${esc(c?.vacinas?.verificadoEm || '')}" />
-        </div>
-      </div>
       <div class="campo"><label>Observações</label><textarea id="f-obs" rows="3">${esc(c?.obs || '')}</textarea></div>
+      <p class="dica" style="margin:-.4rem 0 1.2rem">O que já foi feito você marca no checklist da criança, depois de cadastrar.</p>
       <div style="display:flex; gap:.7rem">
         <button class="btn btn-verde" onclick="salvarCrianca()">${c ? 'Salvar alterações' : 'Cadastrar'}</button>
         ${c ? `<button class="btn btn-linha" onclick="VIEW='crianca'; SEL='${c.id}'; EDITANDO=null; render()">Cancelar</button>` : ''}
@@ -851,22 +704,21 @@ async function salvarCrianca() {
     mae: document.getElementById('f-mae').value.trim(),
     telefone: document.getElementById('f-tel').value.trim(),
     microarea: document.getElementById('f-micro').value.trim(),
-    obs: document.getElementById('f-obs').value.trim(),
-    vacinas: {
-      situacao: document.getElementById('f-vac').value,
-      verificadoEm: document.getElementById('f-vacdata').value
-    }
+    obs: document.getElementById('f-obs').value.trim()
   };
   if (EDITANDO) {
     Object.assign(P.criancas.find(x => x.id === EDITANDO), dados);
     SEL = EDITANDO; EDITANDO = null; VIEW = 'crianca';
   } else {
-    const nova = { id: 'c' + Date.now(), ...dados, atendimentos: [] };
+    const nova = { id:'c' + Date.now(), ...dados,
+      vis30d:0, vis6m:0, cons30d:0, cons2a:0, pesalt2a:0,
+      vacinas:{ pneumo10v:false, penta:false, vip:false, scr:false } };
     P.criancas.push(nova);
     SEL = nova.id; VIEW = 'crianca';
   }
   await salvar();
   render();
+  toast('Salvo.');
 }
 
 // sessão ativa entra direto

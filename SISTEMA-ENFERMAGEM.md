@@ -1,7 +1,7 @@
 # Sistema Enfermagem
 
 Documento de entrada para retomar este trabalho em conversa nova.
-Última atualização: 21/08/2026.
+Última atualização: 21/08/2026 (reescrito como checklist de contadores).
 
 ---
 
@@ -44,52 +44,44 @@ Percentuais do painel real dela, em agosto/2026 (para calibração):
 ## Como o motor funciona
 
 Toda a lógica está em `admin/pacientes.html`, na função `avaliar(crianca)`.
-**Regras são dados, não código** — mexer em `MARCOS` muda o comportamento.
 
-### Os 9 marcos (calendário do MS)
+O sistema **não guarda peso, altura nem datas de consulta** — isso já está no
+e-SUS. Ele guarda só os **contadores** que o relatório oficial cobra, e mostra
+o que ainda falta antes de a criança completar 2 anos.
 
-Cada marco tem uma janela em **dias de vida**. Uma consulta (enfermeiro ou
-médico) dentro da janela cumpre o marco. Cada consulta cumpre no máximo um.
+### Os 5 critérios (0,20 cada → pontuação de 0,00 a 1,00)
 
-| Marco | Alvo | Janela |
+Conferido contra o relatório oficial `relatorio_desenvolvimento_inf.pdf`
+("Lista de Crianças — Desenvolvimento Infantil"). A fórmula bate nos 18
+registros do PDF.
+
+| Critério | Cumpre quando | Prazo |
 |---|---|---|
-| 1ª semana | 7d | 0–30 |
-| 1 mês | 30d | 16–75 |
-| 2 meses | 61d | 46–107 |
-| 4 meses | 122d | 107–168 |
-| 6 meses | 183d | 168–244 |
-| 9 meses | 274d | 244–335 |
-| 12 meses | 365d | 335–470 |
-| 18 meses | 548d | 470–650 |
-| 24 meses | 730d | 650–800 |
+| Visita domiciliar | `vis30d` ≥ 1 **e** `vis6m` ≥ 1 | 30 dias / 240 dias |
+| 1ª consulta | `cons30d` ≥ 1 | 30 dias de vida |
+| 9 consultas | `cons2a` ≥ 9 | 2 anos (730 dias) |
+| 9 com peso e altura | `pesalt2a` ≥ 9 | 2 anos |
+| Vacinas | as 4 marcadas: Pneumo 10V, Penta, VIP, Tríplice viral | 2 anos |
 
-Estado de cada marco: `feito` · `aberto` (janela corrente) · `perdido`
-(janela passou sem consulta) · `futuro`.
+É **tudo ou nada** por critério — meia consulta não pontua. `pesalt2a` nunca
+passa de `cons2a` (o próprio contador trava).
 
-### As 5 práticas
+### Situação da criança
 
-Cada prática devolve `{ feito, devido }` por criança. O percentual do painel
-soma isso de todas e divide. Uma criança só entra no denominador quando a
-prática **já era devida para a idade dela** — é o que evita punir recém-nascido.
+`completa` (5 de 5) · `no-prazo` · `apertado` (sobra menos de 30 dias por
+consulta faltante) · `risco` (algum prazo já venceu) · `encerrada` (passou dos
+2 anos).
 
-| Prática | Cumpre quando | Devido quando |
-|---|---|---|
-| `consulta30` | 1ª consulta ≤ 30 dias de vida | idade > 30d |
-| `puericult9` | marco cumprido | marco já esperado pela idade |
-| `antropo9` | a consulta do marco tem **peso e altura** | idem |
-| `visitas` | visita ACS ≤30d **e** outra entre 150–240d | cada janela vencida |
-| `vacinas` | situação vacinal = "em dia" | cartão já verificado |
+O "apertado" é o ponto do sistema: ele existe para o caso de **faltar pouco
+tempo** para cumprir a meta, que é quando ela puxa esse relatório.
 
-O **geral** é a média das cinco.
+### O gráfico
 
-### Avisos
-
-Recalculados a cada abertura da tela — não há fila persistida, então nunca
-ficam obsoletos. Ordenados: atrasos primeiro (mais antigo no topo), depois os
-que vencem antes. Cada aviso é clicável e leva à criança.
-
-Um marco perdido para de avisar se houve **qualquer** atendimento depois da
-janela — a criança voltou ao serviço, não é caso de busca ativa.
+Três leituras na aba "Onde estou":
+1. **Barras por critério** — % de crianças que já cumpriram cada um.
+2. **Distribuição de pontuação** — quantas estão em 0,00 · 0,20 … 1,00, igual
+   à coluna *Pontuação* do relatório. Cada `+` empurra alguém para cima.
+3. **Fila por prazo** — quem vence primeiro e qual o próximo passo.
 
 ---
 
@@ -101,69 +93,77 @@ janela — a criança voltou ao serviço, não é caso de busca ativa.
 {
   "criancas": [{
     "id": "c1",
-    "nome": "...", "sexo": "F", "nascimento": "2026-08-09",
+    "nome": "...", "sexo": "F", "nascimento": "2024-09-12",
     "mae": "...", "telefone": "...", "microarea": "01", "obs": "",
-    "vacinas": { "situacao": "em-dia|atraso|nao-verificado", "verificadoEm": "2026-07-20" },
-    "atendimentos": [
-      { "data": "2026-08-15", "tipo": "enfermeiro|medico|acs",
-        "obs": "", "peso": 4.35, "altura": 54.2 }
-    ]
+    "vis30d": 1, "vis6m": 2,
+    "cons30d": 1, "cons2a": 8, "pesalt2a": 8,
+    "vacinas": { "pneumo10v": true, "penta": true, "vip": true, "scr": true }
   }]
 }
 ```
 
-`peso`/`altura` são opcionais — é a presença dos dois que conta a antropometria.
-Em visita de ACS ficam vazios.
+Hoje há **108 crianças REAIS** da ESF Granja (Paty do Alferes/RJ),
+importadas em 21/08/2026 do CSV do e-SUS "Acompanhamento de condições de
+saúde" (`acompanhamento-condicao-saude_*.csv`, Latin-1, `;`). CPF e CNS
+ficaram de fora de propósito. O conversor mapeou:
 
-Hoje há **10 crianças fictícias**, com idades de 12 dias a 25 meses, cobrindo
-de propósito todos os estados: em dia, a vencer, em atraso, completa,
-consulta sem medidas, vacina não verificada.
+- `cons2a` ← Quantidade de consultas até 24 meses
+- `pesalt2a` ← Quantidade de medições peso/altura simultâneas (pode ser
+  **maior** que as consultas — medem também na sala de vacina; por isso não
+  há trava entre os dois contadores)
+- `cons30d` / `vis30d` ← data da 1ª consulta / 1ª visita vs. nascimento
+- vacinas ← doses por coluna, conferidas contra o esquema esperado pela idade
+
+⚠️ **`vis6m` veio quase todo 0**: o CSV só informa a data da 1ª e da 2ª
+visita, então não dá para saber se houve visita na janela dos 6 meses
+(150–240 dias). A Josiane precisa marcar esse item manualmente, criança por
+criança — é 1 clique na ficha.
 
 ---
 
 ## O que já funciona
 
-- Visão geral: 4 cartões, **indicadores por prática** (barras + % + geral),
-  donut de atendidas × com pendência, lista de avisos clicáveis
-- Lista de crianças ordenada por urgência, com busca por nome ou mãe,
-  progresso n/9 e "próximo passo" em texto
-- Ficha da criança: as 4 verificações de prazo, progresso de consultas e de
-  antropometria, **percentual das 5 práticas só dela**, linha do tempo dos 9
-  marcos, registro de atendimento (com peso/altura), histórico com exclusão
-- Cadastro e edição, incluindo situação vacinal
-- Tudo grava em `pacientes.json` e entra no sync com o GitHub
+- **Onde estou**: 4 cartões (crianças, pontuação média, prazo mais curto,
+  quantas precisam dela), barras por critério, distribuição de pontuação,
+  fila por prazo clicável
+- **Crianças**: tabela ordenada por urgência, busca por nome ou mãe, cinco
+  pastilhas mostrando quais critérios estão cumpridos, pontuação e n/9
+- **Checklist da criança**: cada linha com `−` / `+`, prazo restante em dias,
+  vacinas como quatro botões que ligam e desligam. Toda alteração grava na
+  hora em `pacientes.json`
+- Cadastro e edição de dados da criança
 
-Testado de ponta a ponta: login, cálculo das 5 práticas, registro de
-atendimento refletindo no indicador na mesma hora, gravação em disco.
+Testado de ponta a ponta no navegador: login por sessão, `+` gravando em
+disco (confirmado relendo a API), pontuação e barras recalculando na mesma
+hora, casos de prazo vencido.
 
 ---
 
 ## Próximos passos possíveis
 
-1. **Notificação de verdade.** Hoje o aviso existe quando ela abre a tela.
+1. **Importar o relatório oficial.** O PDF do e-SUS já traz exatamente estas
+   colunas — dava para colar o texto e preencher os contadores de uma vez,
+   em vez de digitar criança por criança.
+2. **Notificação de verdade.** Hoje o aviso existe quando ela abre a tela.
    Para chegar sem ela pedir: `node-cron` no `app.js` + `nodemailer`
-   (já usado no CRM dele) enviando o resumo semanal. Precisa de servidor
-   sempre ligado — na Hostinger funciona.
-2. **Outros programas.** Gestante (pré-natal: 6 consultas + exames por
-   trimestre) é o próximo natural. O caminho é uma nova tabela de marcos e um
-   `avaliarGestante()` irmão do atual, reaproveitando painel e avisos.
-3. **Curva de crescimento.** Já se guarda peso e altura; falta plotar contra
-   as curvas da OMS (percentis) — seria útil de verdade na consulta.
-4. **Importar do e-SUS.** Se houver export CSV, evita digitação dupla.
-5. **Vacinas por dose** em vez de um estado único, se ela precisar do detalhe.
+   (já usado no CRM dele) enviando o resumo semanal de quem está apertado.
+3. **Outros programas.** Gestante (pré-natal) é o próximo natural: nova lista
+   de critérios e um `avaliarGestante()` irmão, reaproveitando painel e fila.
 
 ---
 
 ## ⚠️ Antes de colocar paciente real aqui
 
-Isto é importante e não foi resolvido — hoje só há dados fictícios.
+Isto é importante e está parcialmente resolvido.
 
 Nome de criança, nome da mãe, telefone, microárea e histórico de atendimento
 são **dado pessoal sensível de saúde** (LGPD, art. 11). O desenho atual não é
 adequado para dados reais:
 
-- `pacientes.json` fica **versionado no Git** e vai para o GitHub a cada
-  edição pelo sync. Histórico de commit é praticamente impossível de expurgar.
+- ~~`pacientes.json` versionado no Git~~ **Resolvido em 21/08/2026**:
+  `git rm --cached`, entrada no `.gitignore` e removido do `git add` do sync
+  ANTES de os dados reais entrarem. O histórico local só tem as fictícias e
+  nunca houve remoto.
 - Uma senha única compartilhada, sem usuário individual, sem registro de quem
   acessou o quê.
 - Hospedagem compartilhada, sem criptografia em repouso.
@@ -174,7 +174,9 @@ já serve), login por pessoa, e registro de acesso. Vale também confirmar com a
 unidade de saúde se o dado pode sair do e-SUS — o prontuário é do serviço, não
 do profissional.
 
-**Enquanto for demonstração com dados fictícios, está tudo bem.**
+**Desde 21/08/2026 há dados reais no `pacientes.json` local** (fora do
+Git). Os demais pontos — senha única, sem log de acesso, hospedagem — seguem
+em aberto e precisam ser resolvidos antes do deploy.
 
 ---
 
