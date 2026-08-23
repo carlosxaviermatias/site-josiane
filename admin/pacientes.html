@@ -203,6 +203,7 @@
   <main id="conteudo"></main>
 </div>
 
+<input type="file" id="input-csv" accept=".csv" style="display:none" onchange="importarCSV(this.files[0])" />
 <div id="aviso-toast"></div>
 
 <script>
@@ -381,7 +382,8 @@ function render() {
       Onde estou${pendentes ? `<span class="badge">${pendentes}</span>` : ''}
     </button>
     <button class="${VIEW==='lista'||VIEW==='crianca'?'ativa':''}" onclick="VIEW='lista'; SEL=null; render()">Crianças</button>
-    <button class="${VIEW==='form'?'ativa':''}" onclick="VIEW='form'; EDITANDO=null; render()">+ Cadastrar</button>`;
+    <button class="${VIEW==='form'?'ativa':''}" onclick="VIEW='form'; EDITANDO=null; render()">+ Cadastrar</button>
+    <button onclick="document.getElementById('input-csv').click()">⇪ Importar CSV do e-SUS</button>`;
 
   const alvo = document.getElementById('conteudo');
   if (VIEW === 'visao') alvo.innerHTML = telaVisao();
@@ -719,6 +721,26 @@ async function salvarCrianca() {
   await salvar();
   render();
   toast('Salvo.');
+}
+
+async function importarCSV(file) {
+  if (!file) return;
+  const fd = new FormData();
+  fd.append('csv', file);
+  toast('Importando planilha…');
+  try {
+    const r = await fetch('/api/admin/pacientes/importar', { method:'POST', body: fd });
+    const j = await r.json();
+    if (r.ok && j.ok) {
+      toast(`Importado: ${j.novos} nova${j.novos===1?'':'s'} · ${j.atualizados} atualizada${j.atualizados===1?'':'s'} · ${j.total} no total.`);
+      await carregar();
+    } else {
+      toast(j.erro || 'Erro ao importar CSV.', true);
+    }
+  } catch (e) {
+    toast('Erro ao enviar o arquivo.', true);
+  }
+  document.getElementById('input-csv').value = '';
 }
 
 // sessão ativa entra direto

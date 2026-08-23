@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 const session = require('express-session');
+const crypto = require('crypto');
 const { exec } = require('child_process');
 
 const app = express();
@@ -177,11 +178,134 @@ app.get('/api/admin/pacientes', checkAuth, (req, res) => {
 app.post('/api/admin/pacientes', checkAuth, (req, res) => {
   try {
     fs.writeFileSync(PACIENTES_FILE, JSON.stringify(req.body, null, 2), 'utf8');
-    syncToGitHub('Painel: atualiza registros de puericultura');
     res.json({ ok: true });
   } catch (e) {
     console.error(e);
     res.status(500).json({ ok: false, erro: 'Erro ao salvar' });
+  }
+});
+
+// ── Importação do CSV "Acompanhamento de condições de saúde" (e-SUS) ──
+// Criptografa o CPF com AES-256-GCM usando ENCRYPTION_KEY (32 bytes em base64).
+function encryptField(value) {
+  if (!value || value === '-') return null;
+  try {
+    const keyB64 = process.env.ENCRYPTION_KEY || '';
+    const key = Buffer.from(keyB64, 'base64');
+    if (key.length !== 32) return null;
+    const iv = crypto.randomBytes(12);
+    const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+    const enc = Buffer.concat([cipher.update(String(value), 'utf8'), cipher.final()]);
+    const tag = cipher.getAuthTag();
+    return Buffer.concat([iv, tag, enc]).toString('base64');
+  } catch (e) {
+    return null;
+  }
+}
+
+function parseDataBRparaISO(s) {
+  if (!s || s === '-') return null;
+  const m = s.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) return null;
+  return `${m[3]}-${m[2]}-${m[1]}`;
+}
+
+function diasEntre(iso, base) {
+  if (!iso || !base) return null;
+  const a = new Date(iso + 'T00:00:00');
+  const b = new Date(base + 'T00:00:00');
+  return Math.round((a - b) / 86400000);
+}
+
+const uploadCsv = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
+
+app.post('/api/admin/pacientes/importar', checkAuth, uploadCsv.single('csv'), (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ ok: false, erro: 'Nenhum arquivo enviado' });
+
+    const texto = new TextDecoder('windows-1252').decode(req.file.buffer);
+    const linhas = texto.split(/\r?\n/);
+    const headerIdx = linhas.findIndex(l => l.startsWith('Nome;Data de nascimento'));
+    if (headerIdx === -1) {
+      return res.status(400).json({ ok: false, erro: 'Cabeçalho não reconhecido — envie o CSV de "Acompanhamento de condições de saúde" do e-SUS.' });
+    }
+    const headers = linhas[headerIdx].split(';').map(h => h.trim());
+
+    const dados = loadPacientes();
+    if (!Array.isArray(dados.criancas)) dados.criancas = [];
+    const porNome = new Map(dados.criancas.map(c => [String(c.nome || '').trim().toUpperCase(), c]));
+
+    let atualizados = 0, novos = 0;
+
+    for (let i = headerIdx + 1; i < linhas.length; i++) {
+      const linha = linhas[i].trim();
+      if (!linha) continue;
+      const valores = linha.split(';');
+      if (valores.length < headers.length) continue;
+      const row = {};
+      headers.forEach((h, k) => { row[h] = (valores[k] || '').trim(); });
+
+      const nome = row['Nome'];
+      if (!nome) continue;
+      const nascISO = parseDataBRparaISO(row['Data de nascimento']);
+      if (!nascISO) continue;
+
+      const sexoRaw = (row['Sexo'] || '').toLowerCase();
+      const sexo = sexoRaw.startsWith('femin') ? 'F' : sexoRaw.startsWith('masc') ? 'M' : '';
+
+      const dVis1 = diasEntre(parseDataBRparaISO(row['Data da primeira visita domiciliar']), nascISO);
+      const dVis2 = diasEntre(parseDataBRparaISO(row['Data da segunda visita domiciliar']), nascISO);
+      const vis30d = (dVis1 !== null && dVis1 <= 30) ? 1 : 0;
+      const vis6m = (dVis2 !== null && dVis2 <= 240) ? 1 : ((dVis1 !== null && dVis1 > 30 && dVis1 <= 240) ? 1 : 0);
+
+      const d1cons = diasEntre(parseDataBRparaISO(row['Data da primeira consulta']), nascISO);
+      const cons30d = (d1cons !== null && d1cons <= 30) ? 1 : 0;
+
+      const cons2a = parseInt(row['Quantidade de consultas até 24 meses'] || '0', 10) || 0;
+      const pesalt2a = parseInt(row['Quantidade de medições de peso/altura simultâneas até 24 meses'] || '0', 10) || 0;
+
+      const temVacina = col => { const v = row[col]; return !!v && v !== '-'; };
+      const vacinas = {
+        penta: temVacina('Difteria, Tétano, Pertusis, Hepatite B, Haemophilus Influenza B'),
+        vip: temVacina('Poliomielite'),
+        scr: temVacina('Sarampo, Caxumba, Rubéola'),
+        pneumo10v: temVacina('Pneumocócica')
+      };
+
+      const telefoneCsv = (row['Telefone celular'] && row['Telefone celular'] !== '-') ? row['Telefone celular'] : '';
+      const microareaCsv = (row['Microárea'] || '').replace(/"/g, '');
+      const cpfEnc = encryptField(row['CPF']);
+
+      const chave = nome.trim().toUpperCase();
+      const existente = porNome.get(chave);
+
+      if (existente) {
+        Object.assign(existente, {
+          nascimento: nascISO,
+          sexo: sexo || existente.sexo,
+          telefone: telefoneCsv || existente.telefone,
+          microarea: microareaCsv || existente.microarea,
+          vis30d, vis6m, cons30d, cons2a, pesalt2a, vacinas,
+          cpf_enc: cpfEnc || existente.cpf_enc
+        });
+        atualizados++;
+      } else {
+        const nova = {
+          id: 'c' + Date.now() + Math.floor(Math.random() * 1000),
+          nome, nascimento: nascISO, sexo, mae: '', telefone: telefoneCsv, microarea: microareaCsv, obs: '',
+          vis30d, vis6m, cons30d, cons2a, pesalt2a, vacinas, cpf_enc: cpfEnc
+        };
+        dados.criancas.push(nova);
+        porNome.set(chave, nova);
+        novos++;
+      }
+    }
+
+    fs.writeFileSync(PACIENTES_FILE, JSON.stringify(dados, null, 2), 'utf8');
+    res.json({ ok: true, novos, atualizados, total: dados.criancas.length });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ ok: false, erro: 'Erro ao processar o CSV' });
   }
 });
 
