@@ -220,7 +220,22 @@
 const PRAZO_2A   = 730;   // dias de vida em que a criança completa 2 anos
 const META_CONS  = 9;     // consultas de puericultura até 2 anos
 const PRAZO_30D  = 30;    // 1ª consulta e 1ª visita domiciliar
-const PRAZO_VIS6 = 240;   // limite da visita domiciliar de 6 meses
+
+// Soma meses/dias de calendário à data de nascimento e devolve em qual dia de
+// vida aquele marco cai. Usa o dia do mês "grudado" no limite do mês de
+// destino (31/jan + 1 mês = 28/fev, não 3/mar) pra não sofrer do rollover
+// automático do Date do JS.
+function diasAoCompletar(nascISO, meses, diasExtras = 0) {
+  const [ano, mes, dia] = nascISO.split('-').map(Number);
+  const nascimento = new Date(ano, mes - 1, dia);
+  let novoMes = (mes - 1) + meses;
+  const novoAno = ano + Math.floor(novoMes / 12);
+  novoMes = ((novoMes % 12) + 12) % 12;
+  const ultimoDiaMes = new Date(novoAno, novoMes + 1, 0).getDate();
+  const alvo = new Date(novoAno, novoMes, Math.min(dia, ultimoDiaMes));
+  alvo.setDate(alvo.getDate() + diasExtras);
+  return Math.round((alvo - nascimento) / 86400000);
+}
 
 const VACINAS = [
   { id:'pneumo10v', rotulo:'Pneumo 10V' },
@@ -290,12 +305,19 @@ function avaliar(c) {
   const vac = c.vacinas || {};
   const vacFeitas = VACINAS.filter(v => vac[v.id]).length;
 
+  // Marcos de calendário da visita de 6 meses: começa a valer quando a criança
+  // completa 6 meses, prazo máximo é 6 meses e 29 dias.
+  const inicio6m = diasAoCompletar(c.nascimento, 6);
+  const fim6m29d = diasAoCompletar(c.nascimento, 6, 29);
+
   // Visita domiciliar até 30 dias — critério próprio do ACS, prazo irrecuperável aos 30 dias.
   const vis30item = item('vis30d', 'Visita domiciliar até 30 dias',
     num(c,'vis30d') ? 1 : 0, 1, PRAZO_30D - idade, ['visita','visitas']);
-  // Visita domiciliar aos 6 meses — critério próprio do ACS, janela até 240 dias.
+  // Visita domiciliar aos 6 meses — critério próprio do ACS, prazo máximo 6 meses e 29 dias.
   const vis6item = item('vis6m', 'Visita domiciliar aos 6 meses',
-    num(c,'vis6m') ? 1 : 0, 1, PRAZO_VIS6 - idade, ['visita','visitas']);
+    num(c,'vis6m') ? 1 : 0, 1, fim6m29d - idade, ['visita','visitas']);
+  vis6item.inicio6m = inicio6m;
+  vis6item.fim6m29d = fim6m29d;
 
   const itens = [
     vis30item,
@@ -426,11 +448,19 @@ function telaVisao() {
     .sort((a, b) => a.av.ate2a - b.av.ate2a)
     .slice(0, 12);
 
-  // Menos de 6 meses, ainda sem a visita domiciliar do ACS aos 6 meses
-  const menores6m = avs.filter(x => x.av.idade < 183 && num(x.c, 'vis6m') === 0)
-    .sort((a, b) => b.av.idade - a.av.idade); // mais perto do prazo primeiro
-  const urgentesACS = menores6m.filter(x => (PRAZO_VIS6 - x.av.idade) <= 30);
-  const corACS = urgentesACS.length ? 'cor-erro' : menores6m.length ? 'cor-ocre' : 'cor-verde';
+  // Visita do ACS até 30 dias — pendente desde o nascimento; depois do dia 30, vencida (mas
+  // continua sinalizada até ser registrada, igual aos demais indicadores em atraso).
+  const pendentes30d = avs.filter(x => num(x.c, 'vis30d') === 0)
+    .sort((a, b) => b.av.idade - a.av.idade); // mais velhas (perto/depois do prazo) primeiro
+  const vencidas30d = pendentes30d.filter(x => x.av.idade > 30);
+  const corACS30d = vencidas30d.length ? 'cor-erro' : pendentes30d.length ? 'cor-ocre' : 'cor-verde';
+
+  // Visita do ACS aos 6 meses — só entra na lista quando a criança completa 6 meses;
+  // prazo máximo é 6 meses e 29 dias (marco calculado por calendário, não em dias corridos fixos).
+  const pendentes6m = avs.filter(x => num(x.c, 'vis6m') === 0 && x.av.idade >= x.av.por.vis6m.inicio6m)
+    .sort((a, b) => b.av.idade - a.av.idade); // mais perto/depois do prazo primeiro
+  const vencidas6m = pendentes6m.filter(x => x.av.idade > x.av.por.vis6m.fim6m29d);
+  const corACS6m = vencidas6m.length ? 'cor-erro' : pendentes6m.length ? 'cor-ocre' : 'cor-verde';
 
   return `
     <div class="cartoes">
@@ -438,25 +468,46 @@ function telaVisao() {
       <div class="cartao cor-verde"><span>Pontuação média</span><strong>${media.toFixed(2).replace('.',',')}</strong><small>de 1,00 possível</small></div>
       <div class="cartao cor-ocre" style="cursor:pointer" onclick="FILTRO_STATUS='prazo'; FILTRO_MICRO=null; VIEW='lista'; SEL=null; BUSCA=''; render(); window.scrollTo(0,0)" title="Ver crianças com prazo em aberto, da mais urgente pra menos"><span>Prazo mais curto</span><strong>${maisCurto ?? '—'}</strong><small>${maisCurto != null ? 'dias para os 2 anos' : 'nenhum prazo aberto'}</small></div>
       <div class="cartao cor-erro" style="cursor:pointer" onclick="FILTRO_STATUS='atencao'; FILTRO_MICRO=null; VIEW='lista'; SEL=null; BUSCA=''; render(); window.scrollTo(0,0)" title="Ver crianças em risco ou apertadas"><span>Precisam de você</span><strong>${emRisco + apertado}</strong><small>${emRisco} em risco · ${apertado} apertada${apertado === 1 ? '' : 's'}</small></div>
-      <div class="cartao ${corACS}" style="cursor:pointer" onclick="FILTRO_STATUS='acs6m'; FILTRO_MICRO=null; VIEW='lista'; SEL=null; BUSCA=''; render(); window.scrollTo(0,0)" title="Ver crianças menores de 6 meses aguardando visita do ACS"><span>&lt; 6 meses · visita ACS</span><strong>${menores6m.length}</strong><small>${urgentesACS.length ? urgentesACS.length + ' urgente' + (urgentesACS.length===1?'':'s') + ' (prazo &lt; 30 dias)' : menores6m.length ? 'ainda dentro do prazo' : 'tudo em dia'}</small></div>
+      <div class="cartao ${corACS30d}" style="cursor:pointer" onclick="FILTRO_STATUS='acs30d'; FILTRO_MICRO=null; VIEW='lista'; SEL=null; BUSCA=''; render(); window.scrollTo(0,0)" title="Ver crianças aguardando a visita do ACS até 30 dias"><span>Visita ACS · 30 dias</span><strong>${pendentes30d.length}</strong><small>${vencidas30d.length ? vencidas30d.length + ' vencida' + (vencidas30d.length===1?'':'s') : pendentes30d.length ? 'dentro do prazo' : 'tudo em dia'}</small></div>
+      <div class="cartao ${corACS6m}" style="cursor:pointer" onclick="FILTRO_STATUS='acs6m'; FILTRO_MICRO=null; VIEW='lista'; SEL=null; BUSCA=''; render(); window.scrollTo(0,0)" title="Ver crianças aguardando a visita do ACS aos 6 meses"><span>Visita ACS · 6 meses</span><strong>${pendentes6m.length}</strong><small>${vencidas6m.length ? vencidas6m.length + ' vencida' + (vencidas6m.length===1?'':'s') : pendentes6m.length ? 'dentro do prazo' : 'tudo em dia'}</small></div>
     </div>
 
-    ${menores6m.length ? `
+    ${pendentes30d.length ? `
     <div class="bloco">
       <div class="bloco-topo">
-        <h2>Menores de 6 meses — visita do ACS pendente</h2>
+        <h2>Visita do ACS até 30 dias — pendente</h2>
         <span class="dica">repassar para o agente comunitário de saúde</span>
       </div>
       <div class="tabela-wrap"><table>
-        <thead><tr><th>Criança</th><th>Idade</th><th>Prazo da visita (240 dias)</th><th>Microárea</th></tr></thead>
-        <tbody>${menores6m.map(({ c, av }) => {
-          const restam = PRAZO_VIS6 - av.idade;
-          const urgente = restam <= 30;
+        <thead><tr><th>Criança</th><th>Idade</th><th>Prazo (30 dias)</th><th>Microárea</th></tr></thead>
+        <tbody>${pendentes30d.map(({ c, av }) => {
+          const restam = 30 - av.idade;
           return `
           <tr class="linha" onclick="abrirCrianca('${c.id}')">
             <td><strong>${esc(c.nome)}</strong></td>
             <td>${idadeTxt(av.idade)}</td>
-            <td><span class="chip ${urgente ? 'risco' : 'apertado'}">${restam > 0 ? dias(restam) + ' restantes' : 'vencido'}</span></td>
+            <td><span class="chip ${restam <= 0 ? 'risco' : 'apertado'}">${restam > 0 ? dias(restam) + ' restantes' : 'vencido há ' + dias(-restam)}</span></td>
+            <td>${esc(c.microarea || '—')}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div>
+    </div>` : ''}
+
+    ${pendentes6m.length ? `
+    <div class="bloco">
+      <div class="bloco-topo">
+        <h2>Visita do ACS aos 6 meses — pendente</h2>
+        <span class="dica">repassar para o agente comunitário de saúde</span>
+      </div>
+      <div class="tabela-wrap"><table>
+        <thead><tr><th>Criança</th><th>Idade</th><th>Prazo (até 6m e 29d)</th><th>Microárea</th></tr></thead>
+        <tbody>${pendentes6m.map(({ c, av }) => {
+          const restam = av.por.vis6m.fim6m29d - av.idade;
+          return `
+          <tr class="linha" onclick="abrirCrianca('${c.id}')">
+            <td><strong>${esc(c.nome)}</strong></td>
+            <td>${idadeTxt(av.idade)}</td>
+            <td><span class="chip ${restam <= 0 ? 'risco' : 'apertado'}">${restam > 0 ? dias(restam) + ' restantes' : 'vencido há ' + dias(-restam)}</span></td>
             <td>${esc(c.microarea || '—')}</td>
           </tr>`;
         }).join('')}</tbody>
@@ -537,12 +588,16 @@ function telaLista() {
   if (FILTRO_STATUS === 'atencao') {
     linhas = linhas.filter(({ av }) => av.status === 'risco' || av.status === 'apertado');
     rotuloFiltro = 'Precisam de você (em risco ou apertadas)';
-  } else if (FILTRO_STATUS === 'acs6m') {
-    linhas = linhas.filter(({ c, av }) => av.idade < 183 && num(c, 'vis6m') === 0)
+  } else if (FILTRO_STATUS === 'acs30d') {
+    linhas = linhas.filter(({ c }) => num(c, 'vis30d') === 0)
       .sort((a, b) => b.av.idade - a.av.idade);
-    rotuloFiltro = 'Menores de 6 meses aguardando visita do ACS';
+    rotuloFiltro = 'Aguardando visita do ACS até 30 dias';
+  } else if (FILTRO_STATUS === 'acs6m') {
+    linhas = linhas.filter(({ c, av }) => num(c, 'vis6m') === 0 && av.idade >= av.por.vis6m.inicio6m)
+      .sort((a, b) => b.av.idade - a.av.idade);
+    rotuloFiltro = 'Aguardando visita do ACS aos 6 meses (completaram 6 meses)';
   } else if (FILTRO_STATUS === 'prazo') {
-    linhas = linhas.filter(({ av }) => av.cumpridos < 5)
+    linhas = linhas.filter(({ av }) => av.cumpridos < CRITERIOS.length)
       .sort((a, b) => a.av.ate2a - b.av.ate2a);
     rotuloFiltro = 'Com prazo em aberto, da mais urgente pra menos';
   }
@@ -577,7 +632,7 @@ function telaLista() {
             ${linhas.map(({ c, av }) => `
               <tr class="linha" onclick="abrirCrianca('${c.id}')">
                 <td><strong>${esc(c.nome)}</strong><br><small style="color:var(--texto-suave)">mãe: ${esc(c.mae || '—')}</small></td>
-                <td>${idadeTxt(av.idade)}${av.idade < 183 && num(c,'vis6m') === 0 ? `<br><span class="chip ${(PRAZO_VIS6 - av.idade) <= 30 ? 'risco' : 'apertado'}" style="margin-top:.3rem; display:inline-block">👶 visita ACS</span>` : ''}</td>
+                <td>${idadeTxt(av.idade)}${num(c,'vis30d') === 0 ? `<br><span class="chip ${av.idade > 30 ? 'risco' : 'apertado'}" style="margin-top:.3rem; display:inline-block">🚪 visita ACS 30d</span>` : ''}${num(c,'vis6m') === 0 && av.idade >= av.por.vis6m.inicio6m ? `<br><span class="chip ${av.idade > av.por.vis6m.fim6m29d ? 'risco' : 'apertado'}" style="margin-top:.3rem; display:inline-block">👶 visita ACS 6m</span>` : ''}</td>
                 <td>${av.ate2a > 0 ? dias(av.ate2a) : '—'}</td>
                 <td><div class="pastilhas">${av.itens.map(i =>
                   `<i class="${i.ok ? 'on' : i.st === 'perdido' ? 'mal' : ''}" title="${esc(i.rotulo)}"></i>`).join('')}</div></td>
