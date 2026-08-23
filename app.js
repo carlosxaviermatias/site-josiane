@@ -161,7 +161,12 @@ app.post('/api/admin/upload', checkAuth, upload.single('imagem'), (req, res) => 
 });
 
 // ── Sistema de puericultura (área restrita) ──────────────────────────
-const PACIENTES_FILE = path.join(__dirname, 'pacientes.json');
+// Fica FORA da pasta de build (que é recriada a cada deploy) para não ser
+// apagado quando o Hostinger publica uma nova versão do código.
+const os = require('os');
+const DADOS_DIR = process.env.DADOS_DIR || path.join(os.homedir(), 'dados-protegidos');
+try { fs.mkdirSync(DADOS_DIR, { recursive: true }); } catch (e) {}
+const PACIENTES_FILE = path.join(DADOS_DIR, 'pacientes.json');
 
 function loadPacientes() {
   try {
