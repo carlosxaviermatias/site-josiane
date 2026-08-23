@@ -382,12 +382,14 @@ function render() {
       Onde estou${pendentes ? `<span class="badge">${pendentes}</span>` : ''}
     </button>
     <button class="${VIEW==='lista'||VIEW==='crianca'?'ativa':''}" onclick="VIEW='lista'; SEL=null; render()">Crianças</button>
+    <button class="${VIEW==='micro'?'ativa':''}" onclick="VIEW='micro'; render()">Microáreas</button>
     <button class="${VIEW==='form'?'ativa':''}" onclick="VIEW='form'; EDITANDO=null; render()">+ Cadastrar</button>
     <button onclick="document.getElementById('input-csv').click()">⇪ Importar CSV do e-SUS</button>`;
 
   const alvo = document.getElementById('conteudo');
   if (VIEW === 'visao') alvo.innerHTML = telaVisao();
   else if (VIEW === 'lista') alvo.innerHTML = telaLista();
+  else if (VIEW === 'micro') alvo.innerHTML = telaMicro();
   else if (VIEW === 'form') alvo.innerHTML = telaForm();
   else if (VIEW === 'crianca') alvo.innerHTML = telaCrianca();
 }
@@ -525,6 +527,103 @@ function telaLista() {
         </table>
       </div>
       ${linhas.length ? '' : '<p class="dica" style="margin-top:1rem">Nenhuma criança encontrada.</p>'}
+    </div>`;
+}
+
+/* ── Microáreas ────────────────────────────────────────────────── */
+function telaMicro() {
+  const avs = P.criancas.map(c => ({ c, av: avaliar(c) }));
+  const grupos = {};
+  avs.forEach(x => {
+    const m = String(x.c.microarea || '').trim() || 'Sem microárea';
+    (grupos[m] = grupos[m] || []).push(x);
+  });
+
+  const linhas = Object.entries(grupos).map(([nome, itens]) => {
+    const n = itens.length;
+    const indicadores = CRITERIOS.map(cr => {
+      const feito = itens.filter(x => x.av.por[cr.id].ok).length;
+      return { ...cr, valor: pct(feito, n) };
+    });
+    const geral = Math.round(indicadores.reduce((s, i) => s + i.valor, 0) / 5);
+    const media = itens.reduce((s, x) => s + x.av.pontuacao, 0) / n;
+    const risco = itens.filter(x => x.av.status === 'risco').length;
+    const apertado = itens.filter(x => x.av.status === 'apertado').length;
+    return { nome, n, indicadores, geral, media, risco, apertado };
+  }).sort((a, b) => b.geral - a.geral || b.n - a.n);
+
+  if (!linhas.length) {
+    return `<div class="bloco"><p class="dica">Nenhuma criança cadastrada ainda — importe o CSV do e-SUS para ver o comparativo por microárea.</p></div>`;
+  }
+
+  const melhor = linhas[0];
+  const pior = linhas[linhas.length - 1];
+  const mediaGeral = Math.round(linhas.reduce((s, l) => s + l.geral, 0) / linhas.length);
+
+  const rotuloCurto = r => r
+    .replace('Visita domiciliar até 30 dias e aos 6 meses', 'Visitas')
+    .replace('1ª consulta até 30 dias de vida', '1ª consulta')
+    .replace('9 consultas até 2 anos', '9 consultas')
+    .replace('9 consultas com peso e altura', 'Peso/altura')
+    .replace('Vacinas do calendário em dia', 'Vacinas');
+
+  return `
+    <div class="cartoes">
+      <div class="cartao"><span>Microáreas</span><strong>${linhas.length}</strong><small>com crianças em acompanhamento</small></div>
+      <div class="cartao cor-verde"><span>Mais atualizada</span><strong style="font-size:1.35rem; line-height:1.25">${esc(melhor.nome)}</strong><small>${melhor.geral}% em dia · ${melhor.n} criança${melhor.n===1?'':'s'}</small></div>
+      <div class="cartao cor-erro"><span>Precisa de atenção</span><strong style="font-size:1.35rem; line-height:1.25">${esc(pior.nome)}</strong><small>${pior.geral}% em dia · ${pior.risco} em risco</small></div>
+      <div class="cartao cor-ocre"><span>Média geral</span><strong>${mediaGeral}%</strong><small>entre todas as microáreas</small></div>
+    </div>
+
+    <div class="bloco">
+      <div class="bloco-topo">
+        <h2>Ranking por microárea</h2>
+        <span class="dica">média dos 5 critérios · melhor no topo</span>
+      </div>
+      ${linhas.map((l, i) => `
+        <div class="barra-lin">
+          <div>
+            <div style="display:flex; align-items:baseline; gap:.55rem; margin-bottom:.45rem; flex-wrap:wrap">
+              <span style="font-family:'Fraunces',serif; font-size:.95rem; color:var(--texto-suave)">#${i + 1}</span>
+              <strong style="font-size:.95rem">${esc(l.nome)}</strong>
+              <span class="dica">${l.n} criança${l.n === 1 ? '' : 's'}${l.risco ? ` · ${l.risco} em risco` : ''}</span>
+            </div>
+            <div class="trilho" style="height:9px"><i style="width:${l.geral}%; background:${corPct(l.geral)}"></i></div>
+          </div>
+          <div style="text-align:right; min-width:100px">
+            <strong style="font-family:'Fraunces',serif; font-size:1.35rem; color:${corPct(l.geral)}">${l.geral}%</strong>
+            <small style="display:block; font-size:.72rem; color:var(--texto-suave)">pont. média ${l.media.toFixed(2).replace('.', ',')}</small>
+          </div>
+        </div>`).join('')}
+    </div>
+
+    <div class="bloco">
+      <div class="bloco-topo">
+        <h2>Mapa de critérios</h2>
+        <span class="dica">% de crianças que já cumpriram cada critério, por microárea</span>
+      </div>
+      <div class="tabela-wrap">
+        <table>
+          <thead><tr>
+            <th>Microárea</th><th>Crianças</th>
+            ${CRITERIOS.map(c => `<th>${esc(rotuloCurto(c.rotulo))}</th>`).join('')}
+          </tr></thead>
+          <tbody>
+            ${linhas.map(l => `
+              <tr>
+                <td><strong>${esc(l.nome)}</strong></td>
+                <td>${l.n}</td>
+                ${l.indicadores.map(i => `
+                  <td>
+                    <div style="display:inline-flex; align-items:center; justify-content:center; min-width:52px; height:28px; padding:0 .4rem; border-radius:4px; font-size:.76rem; font-weight:700; color:#fff; background:${corPct(i.valor)}">
+                      ${i.valor}%
+                    </div>
+                  </td>`).join('')}
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+      <p class="dica" style="margin-top:1rem">Verde = maioria em dia · ocre = atenção · vermelho = a maior parte pendente nesse critério.</p>
     </div>`;
 }
 
