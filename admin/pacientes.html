@@ -237,7 +237,7 @@ const CRITERIOS = [
   { id:'vacinas',  rotulo:'Vacinas do calendário em dia' }
 ];
 
-let P = null, VIEW = 'visao', SEL = null, EDITANDO = null, BUSCA = '', FILTRO_MICRO = null;
+let P = null, VIEW = 'visao', SEL = null, EDITANDO = null, BUSCA = '', FILTRO_MICRO = null, FILTRO_STATUS = null;
 
 const HOJE = new Date(); HOJE.setHours(0,0,0,0);
 const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -288,11 +288,13 @@ function avaliar(c) {
   const vac = c.vacinas || {};
   const vacFeitas = VACINAS.filter(v => vac[v.id]).length;
 
-  // a visita de 30 dias é irrecuperável; a de 6 meses vence aos 240 dias
+  // o indicador exige apenas 1 das duas visitas (30 dias OU 6 meses), não as duas.
+  // Enquanto nenhuma foi feita, o prazo vale até os 240 dias (janela da visita de 6 meses),
+  // que é o limite mais generoso — a de 30 dias vencer não invalida o indicador.
   const vis30 = num(c, 'vis30d'), vis6 = num(c, 'vis6m');
   const visitas = item('visitas', 'Visita domiciliar até 30 dias e aos 6 meses',
-    (vis30 ? 1 : 0) + (vis6 ? 1 : 0), 2,
-    vis30 ? PRAZO_VIS6 - idade : Math.min(PRAZO_30D - idade, PRAZO_VIS6 - idade), ['visita','visitas']);
+    (vis30 ? 1 : 0) + (vis6 ? 1 : 0), 1,
+    PRAZO_VIS6 - idade, ['visita','visitas']);
   visitas.detalhe = `até 30 dias: ${vis30 ? vis30 : 'nenhuma'} · aos 6 meses: ${vis6 ? vis6 : 'nenhuma'}`;
 
   const itens = [
@@ -382,7 +384,7 @@ function render() {
     <button class="${VIEW==='visao'?'ativa':''}" onclick="VIEW='visao'; SEL=null; render()">
       Onde estou${pendentes ? `<span class="badge">${pendentes}</span>` : ''}
     </button>
-    <button class="${VIEW==='lista'||VIEW==='crianca'?'ativa':''}" onclick="VIEW='lista'; SEL=null; FILTRO_MICRO=null; render()">Crianças</button>
+    <button class="${VIEW==='lista'||VIEW==='crianca'?'ativa':''}" onclick="VIEW='lista'; SEL=null; FILTRO_MICRO=null; FILTRO_STATUS=null; render()">Crianças</button>
     <button class="${VIEW==='micro'?'ativa':''}" onclick="VIEW='micro'; render()">Microáreas</button>
     <button class="${VIEW==='form'?'ativa':''}" onclick="VIEW='form'; EDITANDO=null; render()">+ Cadastrar</button>
     <button onclick="document.getElementById('input-csv').click()">⇪ Importar CSV do e-SUS</button>`;
@@ -433,9 +435,9 @@ function telaVisao() {
     <div class="cartoes">
       <div class="cartao"><span>Crianças</span><strong>${n}</strong><small>no acompanhamento</small></div>
       <div class="cartao cor-verde"><span>Pontuação média</span><strong>${media.toFixed(2).replace('.',',')}</strong><small>de 1,00 possível</small></div>
-      <div class="cartao cor-ocre"><span>Prazo mais curto</span><strong>${maisCurto ?? '—'}</strong><small>${maisCurto != null ? 'dias para os 2 anos' : 'nenhum prazo aberto'}</small></div>
-      <div class="cartao cor-erro"><span>Precisam de você</span><strong>${emRisco + apertado}</strong><small>${emRisco} em risco · ${apertado} apertada${apertado === 1 ? '' : 's'}</small></div>
-      <div class="cartao ${corACS}"><span>&lt; 6 meses · visita ACS</span><strong>${menores6m.length}</strong><small>${urgentesACS.length ? urgentesACS.length + ' urgente' + (urgentesACS.length===1?'':'s') + ' (prazo &lt; 30 dias)' : menores6m.length ? 'ainda dentro do prazo' : 'tudo em dia'}</small></div>
+      <div class="cartao cor-ocre" style="cursor:pointer" onclick="FILTRO_STATUS='prazo'; FILTRO_MICRO=null; VIEW='lista'; SEL=null; BUSCA=''; render(); window.scrollTo(0,0)" title="Ver crianças com prazo em aberto, da mais urgente pra menos"><span>Prazo mais curto</span><strong>${maisCurto ?? '—'}</strong><small>${maisCurto != null ? 'dias para os 2 anos' : 'nenhum prazo aberto'}</small></div>
+      <div class="cartao cor-erro" style="cursor:pointer" onclick="FILTRO_STATUS='atencao'; FILTRO_MICRO=null; VIEW='lista'; SEL=null; BUSCA=''; render(); window.scrollTo(0,0)" title="Ver crianças em risco ou apertadas"><span>Precisam de você</span><strong>${emRisco + apertado}</strong><small>${emRisco} em risco · ${apertado} apertada${apertado === 1 ? '' : 's'}</small></div>
+      <div class="cartao ${corACS}" style="cursor:pointer" onclick="FILTRO_STATUS='acs6m'; FILTRO_MICRO=null; VIEW='lista'; SEL=null; BUSCA=''; render(); window.scrollTo(0,0)" title="Ver crianças menores de 6 meses aguardando visita do ACS"><span>&lt; 6 meses · visita ACS</span><strong>${menores6m.length}</strong><small>${urgentesACS.length ? urgentesACS.length + ' urgente' + (urgentesACS.length===1?'':'s') + ' (prazo &lt; 30 dias)' : menores6m.length ? 'ainda dentro do prazo' : 'tudo em dia'}</small></div>
     </div>
 
     ${menores6m.length ? `
@@ -528,6 +530,21 @@ function telaLista() {
     .sort((x, y) => ordem[x.av.status] - ordem[y.av.status] || x.av.ate2a - y.av.ate2a);
   if (FILTRO_MICRO) linhas = linhas.filter(({ c }) =>
     (String(c.microarea || '').trim() || 'Sem microárea') === FILTRO_MICRO);
+
+  let rotuloFiltro = null;
+  if (FILTRO_STATUS === 'atencao') {
+    linhas = linhas.filter(({ av }) => av.status === 'risco' || av.status === 'apertado');
+    rotuloFiltro = 'Precisam de você (em risco ou apertadas)';
+  } else if (FILTRO_STATUS === 'acs6m') {
+    linhas = linhas.filter(({ c, av }) => av.idade < 183 && num(c, 'vis6m') === 0)
+      .sort((a, b) => b.av.idade - a.av.idade);
+    rotuloFiltro = 'Menores de 6 meses aguardando visita do ACS';
+  } else if (FILTRO_STATUS === 'prazo') {
+    linhas = linhas.filter(({ av }) => av.cumpridos < 5)
+      .sort((a, b) => a.av.ate2a - b.av.ate2a);
+    rotuloFiltro = 'Com prazo em aberto, da mais urgente pra menos';
+  }
+
   const termo = BUSCA.trim().toLowerCase();
   if (termo) linhas = linhas.filter(({ c }) =>
     (c.nome + ' ' + (c.mae || '')).toLowerCase().includes(termo));
@@ -543,6 +560,11 @@ function telaLista() {
         <div style="display:flex; align-items:center; gap:.5rem; margin:-.6rem 0 1.2rem">
           <span class="chip no-prazo">Microárea ${esc(FILTRO_MICRO)}</span>
           <button class="btn btn-linha" style="padding:.3rem .7rem; font-size:.66rem" onclick="FILTRO_MICRO=null; render()">✕ limpar filtro</button>
+        </div>` : ''}
+      ${rotuloFiltro ? `
+        <div style="display:flex; align-items:center; gap:.5rem; margin:-.6rem 0 1.2rem">
+          <span class="chip risco">${esc(rotuloFiltro)}</span>
+          <button class="btn btn-linha" style="padding:.3rem .7rem; font-size:.66rem" onclick="FILTRO_STATUS=null; render()">✕ limpar filtro</button>
         </div>` : ''}
       <div class="tabela-wrap">
         <table>
@@ -619,7 +641,7 @@ function telaMicro() {
         <span class="dica">média dos 5 critérios · melhor no topo</span>
       </div>
       ${linhas.map((l, i) => `
-        <div class="barra-lin linha" style="cursor:pointer" onclick='FILTRO_MICRO=${JSON.stringify(l.nome)}; VIEW="lista"; SEL=null; BUSCA=""; render(); window.scrollTo(0,0)' title="Ver crianças desta microárea">
+        <div class="barra-lin linha" style="cursor:pointer" onclick='FILTRO_MICRO=${JSON.stringify(l.nome)}; FILTRO_STATUS=null; VIEW="lista"; SEL=null; BUSCA=""; render(); window.scrollTo(0,0)' title="Ver crianças desta microárea">
           <div>
             <div style="display:flex; align-items:baseline; gap:.55rem; margin-bottom:.45rem; flex-wrap:wrap">
               <span style="font-family:'Fraunces',serif; font-size:.95rem; color:var(--texto-suave)">#${i + 1}</span>
@@ -649,7 +671,7 @@ function telaMicro() {
           </tr></thead>
           <tbody>
             ${linhas.map(l => `
-              <tr class="linha" style="cursor:pointer" onclick='FILTRO_MICRO=${JSON.stringify(l.nome)}; VIEW="lista"; SEL=null; BUSCA=""; render(); window.scrollTo(0,0)' title="Ver crianças desta microárea">
+              <tr class="linha" style="cursor:pointer" onclick='FILTRO_MICRO=${JSON.stringify(l.nome)}; FILTRO_STATUS=null; VIEW="lista"; SEL=null; BUSCA=""; render(); window.scrollTo(0,0)' title="Ver crianças desta microárea">
                 <td><strong>${esc(l.nome)}</strong></td>
                 <td>${l.n}</td>
                 ${l.indicadores.map(i => `
@@ -700,7 +722,7 @@ function telaCrianca() {
         <div>
           <h2 style="margin-bottom:.2rem">${esc(c.nome)}</h2>
           <span class="dica">${idadeTxt(av.idade)} · nascimento ${fmt(c.nascimento)} · mãe: ${esc(c.mae || '—')}
-            ${c.telefone ? ' · ' + esc(c.telefone) : ''}${c.microarea ? ' · <a href="#" onclick=\'event.preventDefault(); FILTRO_MICRO=' + JSON.stringify(String(c.microarea).trim()) + '; VIEW="lista"; SEL=null; BUSCA=""; render()\' style="color:var(--verde-600)">microárea ' + esc(c.microarea) + '</a>' : ''}</span>
+            ${c.telefone ? ' · ' + esc(c.telefone) : ''}${c.microarea ? ' · <a href="#" onclick=\'event.preventDefault(); FILTRO_MICRO=' + JSON.stringify(String(c.microarea).trim()) + '; FILTRO_STATUS=null; VIEW="lista"; SEL=null; BUSCA=""; render()\' style="color:var(--verde-600)">microárea ' + esc(c.microarea) + '</a>' : ''}</span>
         </div>
         <div style="display:flex; gap:.6rem; align-items:center">
           <span class="chip ${av.status}">${ROTULO_STATUS[av.status]}</span>

@@ -208,11 +208,16 @@ function encryptField(value) {
   }
 }
 
+// Aceita tanto dd/mm/aaaa (maioria das colunas) quanto aaaa-mm-dd (datas de
+// visita domiciliar, que o e-SUS já exporta em ISO nesse relatório).
 function parseDataBRparaISO(s) {
   if (!s || s === '-') return null;
-  const m = s.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if (!m) return null;
-  return `${m[3]}-${m[2]}-${m[1]}`;
+  const t = s.trim();
+  const br = t.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (br) return `${br[3]}-${br[2]}-${br[1]}`;
+  const iso = t.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (iso) return t;
+  return null;
 }
 
 function diasEntre(iso, base) {
