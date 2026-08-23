@@ -1,217 +1,207 @@
 # Sistema Enfermagem
 
 Documento de entrada para retomar este trabalho em conversa nova.
-Última atualização: 21/08/2026 (reescrito como checklist de contadores).
+Última atualização: 23/08/2026 — **sistema em produção, com pacientes reais.**
 
 ---
 
-## O que é
+## O que é e onde está
 
 Sistema de acompanhamento de pacientes para a enfermeira **Josiane Tavares**
-(COREN-RJ 455892-ENF), que atua exclusivamente no SUS. Vive dentro do site
-dela, na área restrita.
+(COREN-RJ 455892-ENF, ESF Granja, Paty do Alferes/RJ), que atua exclusivamente
+no SUS. Vive dentro do site dela, na área restrita.
 
 O primeiro programa implementado é **puericultura** (crianças até 2 anos).
-A arquitetura foi desenhada para receber outros programas — gestante,
-hipertenso, diabético — sem reescrever o motor.
 
-**Onde**: `Josiane Tavares/site-josiane/`
-**Rodar**: `npm start` (ou o launch `site-josiane`, porta 3002)
-**Entrar**: `/admin/pacientes` · senha em `ADMIN_PASSWORD` (dev: `josiane2026`)
-
----
-
-## Por que ele existe
-
-A Josiane presta contas de indicadores da Atenção Primária. O painel oficial
-que ela usa mostra percentuais por "prática", e é isso que este sistema
-espelha — para que ela saiba onde está **antes** de o indicador fechar, e saiba
-**qual criança** buscar.
-
-Percentuais do painel real dela, em agosto/2026 (para calibração):
-
-| Prática | Real |
-|---|---|
-| 1ª consulta antes de 30 dias | 41% |
-| 9 puericulturas | 18% |
-| 9 avaliações antropométricas | 29% |
-| Visita antes de 30 dias e 6 meses | 24% |
-| Vacinas | 41% |
-| **Geral** | **31%** |
+- **No ar**: https://drajosianetavares.com.br/sistema/pacientes
+- **Repo local**: `~/Documents/github/site-josiane-push/` (repo GitHub:
+  `carlosxaviermatias/site-josiane`, branch `main`)
+- **Deploy**: Hostinger Web App, redeploy automático a cada `git push`
+- **Login**: senha em `ADMIN_PASSWORD` (produção: `@1211Ninah@`)
+- **Painel de conteúdo do site** (`/sistema`, index/artigos/faq etc.) é coisa
+  separada — mesmo repo, `admin/index.html`
 
 ---
 
-## Como o motor funciona
+## ⚠️ Ler antes de mexer
 
-Toda a lógica está em `admin/pacientes.html`, na função `avaliar(crianca)`.
+1. **`pacientes.json` nunca vai pro Git.** Está no `.gitignore`. Fica em
+   `~/dados-protegidos/pacientes.json` no servidor Hostinger — **fora** da
+   pasta de build (que é recriada a cada deploy), senão os dados sumiam a
+   cada push. CPF é gravado criptografado (AES-256-GCM, `ENCRYPTION_KEY`).
+2. **Toda a lógica do sistema mora em um arquivo só**:
+   `admin/pacientes.html` (~1300 linhas, tudo inline — HTML+CSS+JS num único
+   arquivo, sem build step, sem framework). `app.js` só tem as rotas de API.
+3. **Fluxo de teste local** (repetir sempre antes de subir algo):
+   ```bash
+   ADMIN_PASSWORD=teste123 SESSION_SECRET=seg NODE_ENV=development \
+     PORT=3999 DADOS_DIR=/tmp/algumnome node app.js &
+   curl -s -c /tmp/ck.txt -X POST http://localhost:3999/api/login \
+     -H 'Content-Type: application/json' -d '{"senha":"teste123"}'
+   curl -s -b /tmp/ck.txt -X POST http://localhost:3999/api/admin/pacientes/importar \
+     -F "csv=@/Users/tiagotavares/Downloads/acompanhamento-condicao-saude_2026-08-21-20-10.csv"
+   ```
+   Isso recria os 108 pacientes reais localmente sem tocar em produção.
+4. **Depois de cada `git push`**, o Hostinger demora ~1-2 min pra redeploy.
+   Confirmar com `curl` batendo em algum trecho de texto novo no HTML antes
+   de avisar que terminou.
+
+---
+
+## Como o motor de pontuação funciona
+
+Tudo em `admin/pacientes.html`, função `avaliar(crianca)`.
 
 O sistema **não guarda peso, altura nem datas de consulta** — isso já está no
-e-SUS. Ele guarda só os **contadores** que o relatório oficial cobra, e mostra
-o que ainda falta antes de a criança completar 2 anos.
+e-SUS. Guarda só os **contadores** que o relatório oficial cobra.
 
-### Os 5 critérios (0,20 cada → pontuação de 0,00 a 1,00)
+### Os 6 critérios (1/6 cada → pontuação de 0,00 a 1,00)
 
-Conferido contra o relatório oficial `relatorio_desenvolvimento_inf.pdf`
-("Lista de Crianças — Desenvolvimento Infantil"). A fórmula bate nos 18
-registros do PDF.
+Eram 5 até 22/08 (visita domiciliar contava como 1 critério só, exigindo
+**as duas** — 30d e 6m). A Josiane corrigiu duas vezes:
 
-| Critério | Cumpre quando | Prazo |
+1. Primeiro: o indicador exige só **1 das duas** visitas, não as duas.
+2. Depois: não — **são critérios separados**, cada um com sua própria
+   pontuação. Motor atual: **6 critérios**, `PESO_CRITERIO = 1/6`.
+
+| Critério (`id`) | Cumpre quando | Prazo |
 |---|---|---|
-| Visita domiciliar | `vis30d` ≥ 1 **e** `vis6m` ≥ 1 | 30 dias / 240 dias |
-| 1ª consulta | `cons30d` ≥ 1 | 30 dias de vida |
-| 9 consultas | `cons2a` ≥ 9 | 2 anos (730 dias) |
-| 9 com peso e altura | `pesalt2a` ≥ 9 | 2 anos |
-| Vacinas | as 4 marcadas: Pneumo 10V, Penta, VIP, Tríplice viral | 2 anos |
+| `vis30d` | `vis30d` ≥ 1 | 30 dias de vida (irrecuperável) |
+| `vis6m` | `vis6m` ≥ 1 | **6 meses e 29 dias** — calculado por calendário real (`diasAoCompletar()`), não em dias corridos fixos |
+| `cons30d` | `cons30d` ≥ 1 | 30 dias de vida |
+| `cons2a` | `cons2a` ≥ 9 | 2 anos (730 dias) |
+| `pesalt2a` | `pesalt2a` ≥ 9 | 2 anos |
+| `vacinas` | as 4 marcadas: Pneumo 10V, Penta, VIP, Tríplice viral | 2 anos |
 
-É **tudo ou nada** por critério — meia consulta não pontua. `pesalt2a` nunca
-passa de `cons2a` (o próprio contador trava).
+`vis30d`/`vis6m` são registrados pelo **ACS** (agente comunitário), não pela
+Josiane — isso aparece marcado na interface (nota "ACS" em todo lugar que
+esses dois critérios aparecem).
+
+### Avisos de busca ativa do ACS (importante — regra específica)
+
+Cards e listas separados para "Visita ACS · 30 dias" e "Visita ACS · 6 meses"
+em "Onde estou". Regra pedida pela Josiane em 23/08: **só mostra quem ainda
+dá tempo de agir**.
+
+- **30 dias**: pendente enquanto `idade ≤ 30`. Passou disso sem visita? Some
+  da lista — não adianta mais avisar, o indicador já era.
+- **6 meses**: só entra na lista quando a criança **completa 6 meses**
+  (`idade ≥ inicio6m`, calculado por calendário) — nem existe aviso antes
+  disso. Sai da lista quando passa de `fim6m29d`.
+- **Isso NÃO afeta a pontuação geral nem o status "em risco"** — o critério
+  continua contando como não cumprido pra fins de indicador/mapa de
+  critérios. É só a lista de "quem eu preciso correr atrás agora" que fica
+  enxuta.
 
 ### Situação da criança
 
-`completa` (5 de 5) · `no-prazo` · `apertado` (sobra menos de 30 dias por
-consulta faltante) · `risco` (algum prazo já venceu) · `encerrada` (passou dos
-2 anos).
+`completa` (6 de 6) · `no-prazo` · `apertado` (sobra menos de 30 dias por
+consulta faltante) · `risco` (algum prazo já venceu) · `encerrada` (passou
+dos 2 anos).
 
-O "apertado" é o ponto do sistema: ele existe para o caso de **faltar pouco
-tempo** para cumprir a meta, que é quando ela puxa esse relatório.
+---
 
-### O gráfico
+## Abas do painel
 
-Três leituras na aba "Onde estou":
-1. **Barras por critério** — % de crianças que já cumpriram cada um.
-2. **Distribuição de pontuação** — quantas estão em 0,00 · 0,20 … 1,00, igual
-   à coluna *Pontuação* do relatório. Cada `+` empurra alguém para cima.
-3. **Fila por prazo** — quem vence primeiro e qual o próximo passo.
+1. **Onde estou** — cartões-resumo (clicáveis, filtram a lista de crianças),
+   gráfico por critério (barras ou **rosca**), distribuição de pontuação
+   (barras ou **pizza**), fila por prazo, tabelas de busca ativa do ACS.
+   Todo gráfico é clicável → leva pra lista filtrada.
+2. **Crianças** — tabela com busca por nome/mãe, filtros ativos aparecem
+   como chip removível, botão **⇩ PDF** exporta a visão atual.
+3. **Microáreas** — ranking (barras/rosca/pizza) + mapa de calor por
+   critério. Clicar numa microárea filtra a lista de crianças dela.
+4. **+ Cadastrar** — form manual (raramente usado; o normal é importar CSV).
+5. **Importar CSV do e-SUS** — botão no topo, sobe o relatório
+   "Acompanhamento de condições de saúde" e atualiza tudo automaticamente
+   (casa por nome, atualiza quem já existe, cadastra quem é novo, nunca
+   duplica). **Isto substituiu qualquer digitação manual.**
+
+Cada criança tem uma ficha (clique na linha) com checklist de `+`/`−` por
+critério e vacinas como toggle.
+
+### Navegação (23/08)
+
+- Clicar na logo "Puericultura" no topo volta para "Onde estou" (limpa todos
+  os filtros).
+- A barra de abas fica **fixa ao rolar** (`position:sticky`) — tem um botão
+  "▲ ocultar" que a esconde, virando uma abinha "☰ menu" pra trazer de volta.
+  ⚠️ Isso só funciona porque `#abas` é filho direto de `#app` (que é alto —
+  a página inteira). Um wrapper intermediário do tamanho da própria barra
+  quebra o sticky (o elemento só "gruda" enquanto o pai dele ainda está na
+  tela) — já caí nessa uma vez, não reintroduzir um `<div>` embrulhando
+  `#abas`.
 
 ---
 
 ## Modelo de dados
 
-`pacientes.json`, separado do `data.json` (que é o conteúdo do site).
-
 ```jsonc
 {
   "criancas": [{
-    "id": "c1",
-    "nome": "...", "sexo": "F", "nascimento": "2024-09-12",
-    "mae": "...", "telefone": "...", "microarea": "01", "obs": "",
-    "vis30d": 1, "vis6m": 2,
+    "id": "c1787...", "nome": "...", "sexo": "F", "nascimento": "2024-09-12",
+    "mae": "", "telefone": "...", "microarea": "01", "obs": "",
+    "vis30d": 1, "vis6m": 0,
     "cons30d": 1, "cons2a": 8, "pesalt2a": 8,
-    "vacinas": { "pneumo10v": true, "penta": true, "vip": true, "scr": true }
+    "vacinas": { "pneumo10v": true, "penta": true, "vip": true, "scr": true },
+    "cpf_enc": "gAAAAA..." // AES-256-GCM, chave em ENCRYPTION_KEY — auditoria, não usado na UI
   }]
 }
 ```
 
-Hoje há **108 crianças REAIS** da ESF Granja (Paty do Alferes/RJ),
-importadas em 21/08/2026 do CSV do e-SUS "Acompanhamento de condições de
-saúde" (`acompanhamento-condicao-saude_*.csv`, Latin-1, `;`). CPF e CNS
-ficaram de fora de propósito. O conversor mapeou:
-
-- `cons2a` ← Quantidade de consultas até 24 meses
-- `pesalt2a` ← Quantidade de medições peso/altura simultâneas (pode ser
-  **maior** que as consultas — medem também na sala de vacina; por isso não
-  há trava entre os dois contadores)
-- `cons30d` / `vis30d` ← data da 1ª consulta / 1ª visita vs. nascimento
-- vacinas ← doses por coluna, conferidas contra o esquema esperado pela idade
-
-⚠️ **`vis6m` veio quase todo 0**: o CSV só informa a data da 1ª e da 2ª
-visita, então não dá para saber se houve visita na janela dos 6 meses
-(150–240 dias). A Josiane precisa marcar esse item manualmente, criança por
-criança — é 1 clique na ficha.
+**108 crianças reais** da ESF Granja, mantidas via importação do CSV (não
+mais digitação manual). O parser (`app.js`, `POST /api/admin/pacientes/importar`)
+aceita datas em `dd/mm/aaaa` **e** `aaaa-mm-dd` — o CSV do e-SUS mistura os
+dois formatos nas colunas de visita domiciliar, e isso já causou um bug
+silencioso (visitas sempre zeradas) até ser corrigido em 23/08.
 
 ---
 
-## O que já funciona
+## Segurança (auditoria de 23/08 — ver `SEGURANCA.md` para o detalhe completo)
 
-- **Onde estou**: 4 cartões (crianças, pontuação média, prazo mais curto,
-  quantas precisam dela), barras por critério, distribuição de pontuação,
-  fila por prazo clicável
-- **Crianças**: tabela ordenada por urgência, busca por nome ou mãe, cinco
-  pastilhas mostrando quais critérios estão cumpridos, pontuação e n/9
-- **Checklist da criança**: cada linha com `−` / `+`, prazo restante em dias,
-  vacinas como quatro botões que ligam e desligam. Toda alteração grava na
-  hora em `pacientes.json`
-- Cadastro e edição de dados da criança
+Duas falhas **críticas** foram corrigidas:
+1. `express.static(__dirname)` servia a pasta inteira — `app.js` e
+   `package.json` estavam publicamente baixáveis. Agora é allowlist.
+2. Login sem limite de tentativas. Agora: 8 erros por IP em 15 min bloqueiam
+   por 15 min.
 
-Testado de ponta a ponta no navegador: login por sessão, `+` gravando em
-disco (confirmado relendo a API), pontuação e barras recalculando na mesma
-hora, casos de prazo vencido.
+Mais: cookie `SameSite=Lax`, cabeçalhos de segurança (X-Frame-Options,
+HSTS, etc.), comparação de senha em tempo constante, validação do payload
+antes de gravar `pacientes.json` (com backup `.bak` automático).
+
+**Pendente**: definir `SESSION_SECRET` nas variáveis de ambiente do
+Hostinger (sem ela, todo mundo desloga a cada deploy — funciona, só é
+chato). Gerar com `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
+
+---
+
+## Responsivo + exportação
+
+- Painel funciona em celular: tabelas viram cartões empilhados (rótulo ao
+  lado do valor, copiado do `<thead>` via `rotularCelulas()`), menu do
+  painel de conteúdo (`admin/index.html`) vira faixa horizontal de abas.
+- Todo bloco com tabela ou gráfico tem botão **⇩ PDF** — abre uma janela
+  limpa (sem botões, sem filtros) e chama `window.print()`. Sem biblioteca
+  externa, nada sai do navegador. Tabela sai em paisagem, gráfico em
+  retrato. Rodapé sempre avisa que é dado de saúde (LGPD).
 
 ---
 
 ## Próximos passos possíveis
 
-1. **Importar o relatório oficial.** O PDF do e-SUS já traz exatamente estas
-   colunas — dava para colar o texto e preencher os contadores de uma vez,
-   em vez de digitar criança por criança.
-2. **Notificação de verdade.** Hoje o aviso existe quando ela abre a tela.
-   Para chegar sem ela pedir: `node-cron` no `app.js` + `nodemailer`
-   (já usado no CRM dele) enviando o resumo semanal de quem está apertado.
-3. **Outros programas.** Gestante (pré-natal) é o próximo natural: nova lista
-   de critérios e um `avaliarGestante()` irmão, reaproveitando painel e fila.
+1. **Notificação de verdade.** Hoje reminders são via evento recorrente no
+   Google Calendar (toda segunda 07h30, convite pra `josianenfermeira@gmail.com`)
+   — não é o app enviando. `node-cron` + `nodemailer` seria a versão nativa.
+2. **Outros programas.** Gestante (pré-natal) é o próximo natural: nova
+   lista de critérios e um `avaliarGestante()` irmão, reaproveitando painel,
+   filtros clicáveis e exportação.
+3. Definir `SESSION_SECRET` (única pendência de segurança).
 
 ---
 
-## ⚠️ Antes de colocar paciente real aqui
+## Pendências do site (fora do sistema de pacientes)
 
-Isto é importante e está parcialmente resolvido.
-
-Nome de criança, nome da mãe, telefone, microárea e histórico de atendimento
-são **dado pessoal sensível de saúde** (LGPD, art. 11). O desenho atual não é
-adequado para dados reais:
-
-- ~~`pacientes.json` versionado no Git~~ **Resolvido em 21/08/2026**:
-  `git rm --cached`, entrada no `.gitignore` e removido do `git add` do sync
-  ANTES de os dados reais entrarem. O histórico local só tem as fictícias e
-  nunca houve remoto.
-- Uma senha única compartilhada, sem usuário individual, sem registro de quem
-  acessou o quê.
-- Hospedagem compartilhada, sem criptografia em repouso.
-
-Se o sistema for usado com pacientes reais, o mínimo é: tirar `pacientes.json`
-do Git, banco de verdade com acesso restrito (o Postgres/Supabase do CRM dele
-já serve), login por pessoa, e registro de acesso. Vale também confirmar com a
-unidade de saúde se o dado pode sair do e-SUS — o prontuário é do serviço, não
-do profissional.
-
-**Desde 21/08/2026 há dados reais no `pacientes.json` local** (fora do
-Git). Os demais pontos — senha única, sem log de acesso, hospedagem — seguem
-em aberto e precisam ser resolvidos antes do deploy.
-
----
-
-## Deploy
-
-Repo local já iniciado e commitado (`git log` mostra 1 commit, 28 arquivos,
-`node_modules` fora). Falta o remoto — que eu não consigo criar (não há `gh`
-instalado aqui). O padrão dele é um repo por site, conectado à Hostinger como
-Web App com deploy automático por push.
-
-1. Criar `tavaresmatias/josianetavares` no GitHub — **privado**, por causa dos
-   dados e da senha em `app.js`
-2. Depois:
-   ```bash
-   cd "/Users/tiagotavares/Documents/github/Josiane Tavares/site-josiane"
-   git remote add origin git@github.com:tavaresmatias/josianetavares.git
-   git branch -M main && git push -u origin main
-   ```
-3. Na Hostinger: novo Web App apontando para o repo, e definir
-   `ADMIN_PASSWORD` (**diferente** da de dev), `SESSION_SECRET`,
-   `GITHUB_TOKEN`, `GITHUB_REPO`, `PORT`
-4. Apontar `drajosianetavares.com.br` para o app
-
-Sem `GITHUB_TOKEN`/`GITHUB_REPO`, tudo que ela editar pelo painel se perde no
-próximo deploy.
-
----
-
-## Pendências do site (fora do sistema)
-
-- Cidade/UF e e-mail ainda estão como `[PLACEHOLDER]` (painel → Dados gerais)
-- Fotos definitivas dela — as atuais são recorte de uma foto de corredor.
-  ⚠️ `.heic` de iPhone precisa de `ImageOps.exif_transpose` do Pillow, senão
-  sai deitada (`sips` sozinho ignora o EXIF)
-- Indicações/afiliados são placeholder
-- Decidir o "Dra.": o COFEN só admite o título para quem tem doutorado. Se ela
-  não tiver, o site deveria dizer "Enfermeira Josiane Tavares" e o domínio
-  ficar só como endereço.
+- Cidade/UF e e-mail ainda podem estar como `[PLACEHOLDER]` (painel →
+  Dados gerais) — conferir.
+- Fotos definitivas dela.
+- Indicações/afiliados são placeholder.
