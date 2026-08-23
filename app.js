@@ -23,27 +23,118 @@ const upload = multer({
   }
 });
 
-// ── Middleware ───────────────────────────────────────────────────────
-// Bloqueia acesso direto a arquivos de dados (pacientes.json é sensível/LGPD).
+// ── Segurança ────────────────────────────────────────────────────────
+app.disable('x-powered-by');           // não anunciar o stack
+app.set('trust proxy', 1);             // Hostinger termina o TLS num proxy
+
+// Cabeçalhos de segurança em todas as respostas.
+// Sem CSP de script: o painel usa inline handlers, então uma CSP aqui exigiria
+// 'unsafe-inline' e não protegeria de fato — os demais cabeçalhos valem por si.
 app.use((req, res, next) => {
-  if (req.path === '/pacientes.json' || req.path === '/data.json') return res.status(404).end();
+  res.setHeader('X-Frame-Options', 'DENY');                 // anti-clickjacking
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  if (req.path.startsWith('/api/') || req.path.startsWith('/sistema')) {
+    res.setHeader('Cache-Control', 'no-store');             // nada de dado sensível em cache
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+  }
   next();
 });
 
-// index:false → a rota '/' decide qual HTML servir
-app.use(express.static(__dirname, { index: false }));
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+// ── Arquivos públicos ────────────────────────────────────────────────
+// ALLOWLIST: só o que é realmente público sai daqui. Antes usávamos
+// express.static(__dirname), o que servia app.js, package.json, README —
+// e qualquer arquivo novo que caísse na pasta.
+const PUBLICOS = new Set([
+  '/style.css', '/loader.js', '/favicon.ico', '/robots.txt', '/sitemap.xml',
+  '/index.html', '/artigos.html', '/artigo.html', '/tema.html',
+  '/indicacoes.html', '/faq.html',
+  '/admin/index.html', '/admin/pacientes.html'
+]);
+const ehImagemPublica = p => /^\/img\/[\w.\-]+\.(jpe?g|png|gif|webp|svg|ico|avif)$/i.test(p);
 
+const servirEstaticos = express.static(__dirname, { index: false, dotfiles: 'deny' });
+app.use((req, res, next) => {
+  // Só o que está na allowlist chega ao express.static; o resto segue para as
+  // rotas de página (e cai no 404 final se não for nenhuma delas).
+  if (PUBLICOS.has(req.path) || ehImagemPublica(req.path)) return servirEstaticos(req, res, next);
+  return next();
+});
+
+// Limites de corpo enxutos — o upload de imagem/CSV tem o próprio limite no multer.
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ limit: '2mb', extended: true }));
+
+// Sessão. SESSION_SECRET precisa estar nas variáveis de ambiente; sem ela,
+// geramos uma aleatória por processo (derruba as sessões a cada deploy, mas
+// nunca cai num segredo que está publicado no repositório).
+const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
+if (!process.env.SESSION_SECRET) {
+  console.warn('⚠️ SESSION_SECRET não definida — usando segredo aleatório desta execução.');
+}
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'josiane-secret-key-2026',
+  name: 'sid',
+  secret: SESSION_SECRET,
   resave: false,
-  saveUninitialized: true,
-  cookie: { httpOnly: true }
+  saveUninitialized: false,        // não cria sessão para visitante anônimo
+  rolling: true,                   // renova a validade a cada uso
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV !== 'development',
+    sameSite: 'lax',               // barra CSRF vindo de outro site
+    maxAge: 8 * 60 * 60 * 1000     // 8 horas
+  }
 }));
 
 // Senha da área restrita — definir ADMIN_PASSWORD nas variáveis de ambiente.
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'josiane2026';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
+if (!ADMIN_PASSWORD) {
+  console.error('⛔ ADMIN_PASSWORD não definida — a área restrita ficará inacessível.');
+}
+
+// Comparação em tempo constante, para não vazar a senha pelo tempo de resposta.
+function senhaConfere(recebida) {
+  if (!ADMIN_PASSWORD || typeof recebida !== 'string') return false;
+  const a = Buffer.from(String(recebida));
+  const b = Buffer.from(ADMIN_PASSWORD);
+  if (a.length !== b.length) {
+    crypto.timingSafeEqual(b, b); // gasta o mesmo tempo mesmo com tamanho diferente
+    return false;
+  }
+  return crypto.timingSafeEqual(a, b);
+}
+
+// ── Freio de força bruta no login ────────────────────────────────────
+// Janela deslizante em memória (processo único no Hostinger): 8 tentativas
+// erradas por IP a cada 15 min, depois bloqueia por 15 min.
+const TENTATIVAS = new Map();
+const MAX_TENTATIVAS = 8;
+const JANELA_MS = 15 * 60 * 1000;
+
+function freioLogin(req, res, next) {
+  const ip = req.ip || 'desconhecido';
+  const agora = Date.now();
+  const reg = TENTATIVAS.get(ip);
+  if (reg && agora - reg.desde < JANELA_MS && reg.erros >= MAX_TENTATIVAS) {
+    const faltam = Math.ceil((JANELA_MS - (agora - reg.desde)) / 60000);
+    return res.status(429).json({ ok: false, erro: `Muitas tentativas. Tente de novo em ${faltam} min.` });
+  }
+  next();
+}
+
+function registraErro(ip) {
+  const agora = Date.now();
+  const reg = TENTATIVAS.get(ip);
+  if (!reg || agora - reg.desde >= JANELA_MS) TENTATIVAS.set(ip, { erros: 1, desde: agora });
+  else reg.erros++;
+}
+
+// Limpeza periódica para a tabela não crescer sem limite.
+setInterval(() => {
+  const agora = Date.now();
+  for (const [ip, reg] of TENTATIVAS) if (agora - reg.desde >= JANELA_MS) TENTATIVAS.delete(ip);
+}, JANELA_MS).unref();
 
 function loadData() {
   try {
@@ -117,12 +208,18 @@ app.get('/api/temas/:id', (req, res) => {
 });
 
 // ── Autenticação ─────────────────────────────────────────────────────
-app.post('/api/login', (req, res) => {
-  const { senha } = req.body;
-  if (senha === ADMIN_PASSWORD) {
-    req.session.autenticado = true;
-    return res.json({ ok: true });
+app.post('/api/login', freioLogin, (req, res) => {
+  const { senha } = req.body || {};
+  if (senhaConfere(senha)) {
+    TENTATIVAS.delete(req.ip);
+    // Troca o id da sessão no login, para não herdar um id que já circulava.
+    return req.session.regenerate(err => {
+      if (err) return res.status(500).json({ ok: false, erro: 'Erro ao iniciar sessão' });
+      req.session.autenticado = true;
+      req.session.save(() => res.json({ ok: true }));
+    });
   }
+  registraErro(req.ip);
   res.status(401).json({ ok: false, erro: 'Senha incorreta' });
 });
 
@@ -182,7 +279,20 @@ app.get('/api/admin/pacientes', checkAuth, (req, res) => {
 
 app.post('/api/admin/pacientes', checkAuth, (req, res) => {
   try {
-    fs.writeFileSync(PACIENTES_FILE, JSON.stringify(req.body, null, 2), 'utf8');
+    // Valida o formato antes de gravar: um corpo malformado apagaria o cadastro.
+    const corpo = req.body;
+    if (!corpo || typeof corpo !== 'object' || !Array.isArray(corpo.criancas)) {
+      return res.status(400).json({ ok: false, erro: 'Formato inválido' });
+    }
+    if (corpo.criancas.some(c => !c || typeof c !== 'object' || !c.id || !c.nome)) {
+      return res.status(400).json({ ok: false, erro: 'Registro sem id ou nome' });
+    }
+    // Rede de segurança: guarda a versão anterior antes de sobrescrever.
+    try {
+      if (fs.existsSync(PACIENTES_FILE)) fs.copyFileSync(PACIENTES_FILE, PACIENTES_FILE + '.bak');
+    } catch (e) { /* backup é best-effort */ }
+
+    fs.writeFileSync(PACIENTES_FILE, JSON.stringify(corpo, null, 2), 'utf8');
     res.json({ ok: true });
   } catch (e) {
     console.error(e);
@@ -310,6 +420,10 @@ app.post('/api/admin/pacientes/importar', checkAuth, uploadCsv.single('csv'), (r
         novos++;
       }
     }
+
+    try {
+      if (fs.existsSync(PACIENTES_FILE)) fs.copyFileSync(PACIENTES_FILE, PACIENTES_FILE + '.bak');
+    } catch (e) { /* backup é best-effort */ }
 
     fs.writeFileSync(PACIENTES_FILE, JSON.stringify(dados, null, 2), 'utf8');
     res.json({ ok: true, novos, atualizados, total: dados.criancas.length });

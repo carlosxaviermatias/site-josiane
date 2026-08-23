@@ -172,6 +172,66 @@
   }
   #aviso-toast.visivel { opacity:1; transform:translateY(0); }
   #aviso-toast.erro { background:var(--erro); }
+
+  /* botão de exportar, no canto do bloco */
+  .btn-pdf {
+    font:inherit; font-size:.7rem; font-weight:600; letter-spacing:.06em;
+    padding:.45rem .9rem; border-radius:100px; cursor:pointer;
+    background:#fff; border:1px solid var(--areia-3); color:var(--texto-suave);
+    display:inline-flex; align-items:center; gap:.35rem; transition:150ms; white-space:nowrap;
+  }
+  .btn-pdf:hover { border-color:var(--verde-600); color:var(--verde-600); }
+
+  /* ── Celular ───────────────────────────────────────────────────────
+     As tabelas têm 6-7 colunas e não cabem numa tela de 375px: em vez de
+     obrigar o scroll lateral, cada linha vira um cartão com os rótulos ao
+     lado do valor (os rótulos são copiados do <thead> por JS). */
+  @media (max-width:720px) {
+    body { font-size:14px; }
+    main { padding:1.1rem 1rem 4rem; }
+    .topo { padding:.9rem 1rem; }
+    .topo nav { gap:1rem; font-size:.8rem; }
+    .abas-pill { padding:1rem 1rem 0; gap:.4rem; }
+    .abas-pill button { padding:.6rem 1rem; font-size:.8rem; }
+    .bloco { padding:1.1rem; }
+    .bloco-topo { gap:.6rem; }
+    .bloco-topo h2 { font-size:1.15rem; }
+    .cartoes { grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); }
+    .cartao { padding:1rem; }
+    .cartao strong { font-size:1.6rem; }
+
+    .tabela-wrap { overflow-x:visible; }
+    table, tbody, tr, td { display:block; width:100%; }
+    thead { display:none; }
+    tr {
+      border:1px solid var(--areia-3); border-radius:5px;
+      margin-bottom:.7rem; padding:.35rem .2rem; background:#fff;
+    }
+    tr.linha:hover { background:var(--areia); }
+    td {
+      display:flex; align-items:center; justify-content:space-between; gap:1rem;
+      border-bottom:1px solid var(--areia-2); padding:.55rem .7rem; text-align:right;
+    }
+    tr td:last-child { border-bottom:0; }
+    td::before {
+      content:attr(data-rotulo);
+      font-size:.63rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+      color:var(--texto-suave); text-align:left; flex:0 0 auto; max-width:45%;
+    }
+    td .pastilhas { justify-content:flex-end; }
+    input, select, textarea { font-size:16px; }  /* evita o zoom automático do iOS */
+    #aviso-toast { right:1rem; left:1rem; bottom:1rem; text-align:center; }
+  }
+
+  /* ── Impressão / PDF ───────────────────────────────────────────────
+     A janela de exportação já monta um documento limpo; estas regras cobrem
+     o caso de alguém imprimir a página inteira direto do navegador. */
+  @media print {
+    .topo, .abas-pill, #aviso-toast, .btn-pdf, .btn, input[type="search"] { display:none !important; }
+    body { background:#fff; font-size:11pt; }
+    .bloco { border:1px solid #999; break-inside:avoid; page-break-inside:avoid; }
+    tr { break-inside:avoid; page-break-inside:avoid; }
+  }
 </style>
 </head>
 <body>
@@ -418,6 +478,23 @@ function render() {
   else if (VIEW === 'micro') alvo.innerHTML = telaMicro();
   else if (VIEW === 'form') alvo.innerHTML = telaForm();
   else if (VIEW === 'crianca') alvo.innerHTML = telaCrianca();
+
+  rotularCelulas();
+}
+
+/* No celular a tabela vira cartão e o <thead> some, então cada célula carrega
+   o próprio rótulo. Copiamos do cabeçalho aqui, uma vez por render, em vez de
+   repetir data-rotulo em toda a montagem de HTML. */
+function rotularCelulas() {
+  document.querySelectorAll('#conteudo table').forEach(tabela => {
+    const rotulos = [...tabela.querySelectorAll('thead th')].map(th => th.textContent.trim());
+    if (!rotulos.length) return;
+    tabela.querySelectorAll('tbody tr').forEach(tr => {
+      [...tr.children].forEach((td, i) => {
+        if (rotulos[i]) td.setAttribute('data-rotulo', rotulos[i]);
+      });
+    });
+  });
 }
 
 /* ── Onde estou ────────────────────────────────────────────────── */
@@ -479,7 +556,10 @@ function telaVisao() {
     <div class="bloco">
       <div class="bloco-topo">
         <h2>Visita do ACS até 30 dias — busca ativa</h2>
-        <span class="dica">ainda dá tempo · repassar para o agente comunitário de saúde</span>
+        <div style="display:flex; align-items:center; gap:.7rem; flex-wrap:wrap">
+          <span class="dica">ainda dá tempo · repassar para o ACS</span>
+          <button class="btn-pdf" onclick="exportarPDF(this, 'Visita do ACS até 30 dias — busca ativa')">⇩ PDF</button>
+        </div>
       </div>
       <div class="tabela-wrap"><table>
         <thead><tr><th>Criança</th><th>Idade</th><th>Prazo (30 dias)</th><th>Microárea</th></tr></thead>
@@ -500,7 +580,10 @@ function telaVisao() {
     <div class="bloco">
       <div class="bloco-topo">
         <h2>Visita do ACS aos 6 meses — busca ativa</h2>
-        <span class="dica">ainda dá tempo · repassar para o agente comunitário de saúde</span>
+        <div style="display:flex; align-items:center; gap:.7rem; flex-wrap:wrap">
+          <span class="dica">ainda dá tempo · repassar para o ACS</span>
+          <button class="btn-pdf" onclick="exportarPDF(this, 'Visita do ACS aos 6 meses — busca ativa')">⇩ PDF</button>
+        </div>
       </div>
       <div class="tabela-wrap"><table>
         <thead><tr><th>Criança</th><th>Idade</th><th>Prazo (até 6m e 29d)</th><th>Microárea</th></tr></thead>
@@ -563,7 +646,10 @@ function telaVisao() {
     <div class="bloco">
       <div class="bloco-topo">
         <h2>Fila por prazo</h2>
-        <span class="dica">${fila.length ? 'quem vence primeiro' : 'nada pendente'}</span>
+        <div style="display:flex; align-items:center; gap:.7rem; flex-wrap:wrap">
+          <span class="dica">${fila.length ? 'quem vence primeiro' : 'nada pendente'}</span>
+          ${fila.length ? `<button class="btn-pdf" onclick="exportarPDF(this, 'Fila por prazo — quem vence primeiro')">⇩ PDF</button>` : ''}
+        </div>
       </div>
       ${fila.length ? `<div class="tabela-wrap"><table>
         <thead><tr><th>Criança</th><th>Faz 2 anos em</th><th>Pontuação</th><th>Próximo passo</th></tr></thead>
@@ -614,8 +700,11 @@ function telaLista() {
     <div class="bloco">
       <div class="bloco-topo">
         <h2>Crianças</h2>
-        <input type="search" id="input-busca" placeholder="Buscar por nome ou mãe" value="${esc(BUSCA)}"
-               style="max-width:260px" oninput="BUSCA=this.value; const _p=this.selectionStart; render(); const _el=document.getElementById('input-busca'); if(_el){ _el.focus(); _el.setSelectionRange(_p,_p); }" />
+        <div style="display:flex; align-items:center; gap:.6rem; flex-wrap:wrap">
+          <input type="search" id="input-busca" placeholder="Buscar por nome ou mãe" value="${esc(BUSCA)}"
+                 style="max-width:260px" oninput="BUSCA=this.value; const _p=this.selectionStart; render(); const _el=document.getElementById('input-busca'); if(_el){ _el.focus(); _el.setSelectionRange(_p,_p); }" />
+          <button class="btn-pdf" onclick='exportarPDF(this, ${JSON.stringify("Crianças" + (rotuloFiltro ? " — " + rotuloFiltro : "") + (FILTRO_MICRO ? " — microárea " + FILTRO_MICRO : ""))})'>⇩ PDF</button>
+        </div>
       </div>
       ${FILTRO_MICRO ? `
         <div style="display:flex; align-items:center; gap:.5rem; margin:-.6rem 0 1.2rem">
@@ -635,7 +724,7 @@ function telaLista() {
           <tbody>
             ${linhas.map(({ c, av }) => `
               <tr class="linha" onclick="abrirCrianca('${c.id}')">
-                <td><strong>${esc(c.nome)}</strong><br><small style="color:var(--texto-suave)">mãe: ${esc(c.mae || '—')}</small></td>
+                <td><div><strong>${esc(c.nome)}</strong><br><small style="color:var(--texto-suave)">mãe: ${esc(c.mae || '—')}</small></div></td>
                 <td>${idadeTxt(av.idade)}${num(c,'vis30d') === 0 && av.idade <= 30 ? `<br><span class="chip ${(30 - av.idade) <= 7 ? 'risco' : 'apertado'}" style="margin-top:.3rem; display:inline-block">🚪 visita ACS 30d</span>` : ''}${num(c,'vis6m') === 0 && av.idade >= av.por.vis6m.inicio6m && av.idade <= av.por.vis6m.fim6m29d ? `<br><span class="chip ${(av.por.vis6m.fim6m29d - av.idade) <= 7 ? 'risco' : 'apertado'}" style="margin-top:.3rem; display:inline-block">👶 visita ACS 6m</span>` : ''}</td>
                 <td>${av.ate2a > 0 ? dias(av.ate2a) : '—'}</td>
                 <td><div class="pastilhas">${av.itens.map(i =>
@@ -723,7 +812,10 @@ function telaMicro() {
     <div class="bloco">
       <div class="bloco-topo">
         <h2>Mapa de critérios</h2>
-        <span class="dica">% de crianças que já cumpriram cada critério, por microárea</span>
+        <div style="display:flex; align-items:center; gap:.7rem; flex-wrap:wrap">
+          <span class="dica">% por critério, em cada microárea</span>
+          <button class="btn-pdf" onclick="exportarPDF(this, 'Mapa de critérios por microárea')">⇩ PDF</button>
+        </div>
       </div>
       <div class="tabela-wrap">
         <table>
@@ -935,6 +1027,78 @@ async function salvarCrianca() {
   await salvar();
   render();
   toast('Salvo.');
+}
+
+/* ── Exportar tabela para PDF ──────────────────────────────────────
+   Monta um documento limpo numa janela nova e chama a impressão do
+   navegador — de onde dá pra salvar em PDF. Sem biblioteca externa:
+   funciona offline e não manda dado de paciente para lugar nenhum. */
+function exportarPDF(btn, titulo) {
+  const bloco = btn.closest('.bloco');
+  const tabela = bloco && bloco.querySelector('table');
+  if (!tabela) return toast('Nada para exportar aqui.', true);
+
+  const copia = tabela.cloneNode(true);
+  copia.querySelectorAll('[onclick]').forEach(el => el.removeAttribute('onclick'));
+  copia.querySelectorAll('[style*="cursor"]').forEach(el => el.style.cursor = '');
+
+  const agora = new Date();
+  const carimbo = agora.toLocaleDateString('pt-BR') + ' às ' +
+    agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const linhas = copia.querySelectorAll('tbody tr').length;
+
+  const doc = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8" />
+<title>${esc(titulo)} — ${carimbo}</title>
+<style>
+  @page { size:A4 landscape; margin:14mm; }
+  * { -webkit-print-color-adjust:exact; print-color-adjust:exact; box-sizing:border-box; }
+  body { font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; color:#17251F; margin:0; font-size:10pt; }
+  header { border-bottom:2px solid #12352A; padding-bottom:8px; margin-bottom:14px; }
+  .marca { font-size:15pt; font-weight:700; color:#12352A; }
+  .sub { font-size:8pt; letter-spacing:.14em; text-transform:uppercase; color:#B87F6C; margin-top:2px; }
+  h1 { font-size:13pt; margin:14px 0 3px; }
+  .meta { font-size:8.5pt; color:#5D6E66; margin-bottom:12px; }
+  table { width:100%; border-collapse:collapse; font-size:9pt; }
+  th { text-align:left; font-size:7.5pt; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+       color:#5D6E66; padding:6px 7px; border-bottom:1.5px solid #12352A; }
+  td { padding:6px 7px; border-bottom:1px solid #E3D8C6; vertical-align:middle; }
+  tr { break-inside:avoid; page-break-inside:avoid; }
+  tbody tr:nth-child(even) { background:#FAF7F1; }
+  .chip { font-size:7.5pt; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+          padding:2px 7px; border-radius:20px; white-space:nowrap; display:inline-block; }
+  .chip.completa { background:#15803D; color:#fff; }
+  .chip.no-prazo { background:#DCE9E1; color:#15803D; }
+  .chip.apertado { background:#FEF3C7; color:#CA8A04; }
+  .chip.risco { background:#FEE2E2; color:#DC2626; }
+  .chip.encerrada { background:#EFE7DA; color:#5D6E66; }
+  .pastilhas { display:flex; gap:3px; }
+  .pastilhas i { width:14px; height:7px; border-radius:2px; background:#EFE7DA; display:inline-block; }
+  .pastilhas i.on { background:#15803D; }
+  .pastilhas i.mal { background:#DC2626; }
+  .pontos { font-size:11pt; font-weight:600; }
+  small { color:#5D6E66; font-size:7.5pt; }
+  footer { margin-top:16px; padding-top:7px; border-top:1px solid #E3D8C6;
+           font-size:7.5pt; color:#5D6E66; }
+  footer strong { color:#DC2626; }
+</style></head><body>
+<header>
+  <div class="marca">Puericultura — Josiane Tavares</div>
+  <div class="sub">Enfermeira · COREN-RJ 455892-ENF · ESF Granja · Paty do Alferes/RJ</div>
+</header>
+<h1>${esc(titulo)}</h1>
+<div class="meta">${linhas} registro${linhas === 1 ? '' : 's'} · gerado em ${carimbo}</div>
+${copia.outerHTML}
+<footer><strong>Documento com dados pessoais de saúde (LGPD).</strong>
+Uso restrito à equipe. Não compartilhe nem descarte sem cuidado.</footer>
+</body></html>`;
+
+  const janela = window.open('', '_blank');
+  if (!janela) return toast('Libere as janelas pop-up para exportar.', true);
+  janela.document.write(doc);
+  janela.document.close();
+  janela.focus();
+  // Dá um instante para a fonte/layout assentarem antes de abrir a impressão.
+  setTimeout(() => janela.print(), 350);
 }
 
 async function importarCSV(file) {
