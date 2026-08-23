@@ -448,19 +448,22 @@ function telaVisao() {
     .sort((a, b) => a.av.ate2a - b.av.ate2a)
     .slice(0, 12);
 
-  // Visita do ACS até 30 dias — pendente desde o nascimento; depois do dia 30, vencida (mas
-  // continua sinalizada até ser registrada, igual aos demais indicadores em atraso).
-  const pendentes30d = avs.filter(x => num(x.c, 'vis30d') === 0)
-    .sort((a, b) => b.av.idade - a.av.idade); // mais velhas (perto/depois do prazo) primeiro
-  const vencidas30d = pendentes30d.filter(x => x.av.idade > 30);
-  const corACS30d = vencidas30d.length ? 'cor-erro' : pendentes30d.length ? 'cor-ocre' : 'cor-verde';
+  // Visita do ACS até 30 dias — só interessa pra busca ativa enquanto a janela
+  // está aberta (0 a 30 dias de vida). Depois de vencida, o dado já era: sai da lista.
+  const pendentes30d = avs.filter(x => num(x.c, 'vis30d') === 0 && x.av.idade <= 30)
+    .sort((a, b) => a.av.idade - b.av.idade); // mais perto de vencer primeiro
+  const urgentes30d = pendentes30d.filter(x => (30 - x.av.idade) <= 7);
+  const corACS30d = urgentes30d.length ? 'cor-erro' : pendentes30d.length ? 'cor-ocre' : 'cor-verde';
 
-  // Visita do ACS aos 6 meses — só entra na lista quando a criança completa 6 meses;
-  // prazo máximo é 6 meses e 29 dias (marco calculado por calendário, não em dias corridos fixos).
-  const pendentes6m = avs.filter(x => num(x.c, 'vis6m') === 0 && x.av.idade >= x.av.por.vis6m.inicio6m)
-    .sort((a, b) => b.av.idade - a.av.idade); // mais perto/depois do prazo primeiro
-  const vencidas6m = pendentes6m.filter(x => x.av.idade > x.av.por.vis6m.fim6m29d);
-  const corACS6m = vencidas6m.length ? 'cor-erro' : pendentes6m.length ? 'cor-ocre' : 'cor-verde';
+  // Visita do ACS aos 6 meses — só entra na lista quando a criança completa 6 meses
+  // e enquanto ainda não passou do prazo máximo (6 meses e 29 dias); depois disso, sai da lista.
+  const pendentes6m = avs.filter(x =>
+      num(x.c, 'vis6m') === 0 &&
+      x.av.idade >= x.av.por.vis6m.inicio6m &&
+      x.av.idade <= x.av.por.vis6m.fim6m29d)
+    .sort((a, b) => a.av.idade - b.av.idade); // mais perto de vencer primeiro
+  const urgentes6m = pendentes6m.filter(x => (x.av.por.vis6m.fim6m29d - x.av.idade) <= 7);
+  const corACS6m = urgentes6m.length ? 'cor-erro' : pendentes6m.length ? 'cor-ocre' : 'cor-verde';
 
   return `
     <div class="cartoes">
@@ -468,15 +471,15 @@ function telaVisao() {
       <div class="cartao cor-verde"><span>Pontuação média</span><strong>${media.toFixed(2).replace('.',',')}</strong><small>de 1,00 possível</small></div>
       <div class="cartao cor-ocre" style="cursor:pointer" onclick="FILTRO_STATUS='prazo'; FILTRO_MICRO=null; VIEW='lista'; SEL=null; BUSCA=''; render(); window.scrollTo(0,0)" title="Ver crianças com prazo em aberto, da mais urgente pra menos"><span>Prazo mais curto</span><strong>${maisCurto ?? '—'}</strong><small>${maisCurto != null ? 'dias para os 2 anos' : 'nenhum prazo aberto'}</small></div>
       <div class="cartao cor-erro" style="cursor:pointer" onclick="FILTRO_STATUS='atencao'; FILTRO_MICRO=null; VIEW='lista'; SEL=null; BUSCA=''; render(); window.scrollTo(0,0)" title="Ver crianças em risco ou apertadas"><span>Precisam de você</span><strong>${emRisco + apertado}</strong><small>${emRisco} em risco · ${apertado} apertada${apertado === 1 ? '' : 's'}</small></div>
-      <div class="cartao ${corACS30d}" style="cursor:pointer" onclick="FILTRO_STATUS='acs30d'; FILTRO_MICRO=null; VIEW='lista'; SEL=null; BUSCA=''; render(); window.scrollTo(0,0)" title="Ver crianças aguardando a visita do ACS até 30 dias"><span>Visita ACS · 30 dias</span><strong>${pendentes30d.length}</strong><small>${vencidas30d.length ? vencidas30d.length + ' vencida' + (vencidas30d.length===1?'':'s') : pendentes30d.length ? 'dentro do prazo' : 'tudo em dia'}</small></div>
-      <div class="cartao ${corACS6m}" style="cursor:pointer" onclick="FILTRO_STATUS='acs6m'; FILTRO_MICRO=null; VIEW='lista'; SEL=null; BUSCA=''; render(); window.scrollTo(0,0)" title="Ver crianças aguardando a visita do ACS aos 6 meses"><span>Visita ACS · 6 meses</span><strong>${pendentes6m.length}</strong><small>${vencidas6m.length ? vencidas6m.length + ' vencida' + (vencidas6m.length===1?'':'s') : pendentes6m.length ? 'dentro do prazo' : 'tudo em dia'}</small></div>
+      <div class="cartao ${corACS30d}" style="cursor:pointer" onclick="FILTRO_STATUS='acs30d'; FILTRO_MICRO=null; VIEW='lista'; SEL=null; BUSCA=''; render(); window.scrollTo(0,0)" title="Busca ativa: visita do ACS até 30 dias, ainda dentro do prazo"><span>Visita ACS · 30 dias</span><strong>${pendentes30d.length}</strong><small>${urgentes30d.length ? urgentes30d.length + ' urgente' + (urgentes30d.length===1?'':'s') + ' (≤ 7 dias)' : pendentes30d.length ? 'dentro do prazo' : 'tudo em dia'}</small></div>
+      <div class="cartao ${corACS6m}" style="cursor:pointer" onclick="FILTRO_STATUS='acs6m'; FILTRO_MICRO=null; VIEW='lista'; SEL=null; BUSCA=''; render(); window.scrollTo(0,0)" title="Busca ativa: visita do ACS aos 6 meses, ainda dentro do prazo"><span>Visita ACS · 6 meses</span><strong>${pendentes6m.length}</strong><small>${urgentes6m.length ? urgentes6m.length + ' urgente' + (urgentes6m.length===1?'':'s') + ' (≤ 7 dias)' : pendentes6m.length ? 'dentro do prazo' : 'tudo em dia'}</small></div>
     </div>
 
     ${pendentes30d.length ? `
     <div class="bloco">
       <div class="bloco-topo">
-        <h2>Visita do ACS até 30 dias — pendente</h2>
-        <span class="dica">repassar para o agente comunitário de saúde</span>
+        <h2>Visita do ACS até 30 dias — busca ativa</h2>
+        <span class="dica">ainda dá tempo · repassar para o agente comunitário de saúde</span>
       </div>
       <div class="tabela-wrap"><table>
         <thead><tr><th>Criança</th><th>Idade</th><th>Prazo (30 dias)</th><th>Microárea</th></tr></thead>
@@ -486,7 +489,7 @@ function telaVisao() {
           <tr class="linha" onclick="abrirCrianca('${c.id}')">
             <td><strong>${esc(c.nome)}</strong></td>
             <td>${idadeTxt(av.idade)}</td>
-            <td><span class="chip ${restam <= 0 ? 'risco' : 'apertado'}">${restam > 0 ? dias(restam) + ' restantes' : 'vencido há ' + dias(-restam)}</span></td>
+            <td><span class="chip ${restam <= 7 ? 'risco' : 'apertado'}">${dias(restam)} restantes</span></td>
             <td>${esc(c.microarea || '—')}</td>
           </tr>`;
         }).join('')}</tbody>
@@ -496,8 +499,8 @@ function telaVisao() {
     ${pendentes6m.length ? `
     <div class="bloco">
       <div class="bloco-topo">
-        <h2>Visita do ACS aos 6 meses — pendente</h2>
-        <span class="dica">repassar para o agente comunitário de saúde</span>
+        <h2>Visita do ACS aos 6 meses — busca ativa</h2>
+        <span class="dica">ainda dá tempo · repassar para o agente comunitário de saúde</span>
       </div>
       <div class="tabela-wrap"><table>
         <thead><tr><th>Criança</th><th>Idade</th><th>Prazo (até 6m e 29d)</th><th>Microárea</th></tr></thead>
@@ -507,7 +510,7 @@ function telaVisao() {
           <tr class="linha" onclick="abrirCrianca('${c.id}')">
             <td><strong>${esc(c.nome)}</strong></td>
             <td>${idadeTxt(av.idade)}</td>
-            <td><span class="chip ${restam <= 0 ? 'risco' : 'apertado'}">${restam > 0 ? dias(restam) + ' restantes' : 'vencido há ' + dias(-restam)}</span></td>
+            <td><span class="chip ${restam <= 7 ? 'risco' : 'apertado'}">${dias(restam)} restantes</span></td>
             <td>${esc(c.microarea || '—')}</td>
           </tr>`;
         }).join('')}</tbody>
@@ -589,13 +592,14 @@ function telaLista() {
     linhas = linhas.filter(({ av }) => av.status === 'risco' || av.status === 'apertado');
     rotuloFiltro = 'Precisam de você (em risco ou apertadas)';
   } else if (FILTRO_STATUS === 'acs30d') {
-    linhas = linhas.filter(({ c }) => num(c, 'vis30d') === 0)
-      .sort((a, b) => b.av.idade - a.av.idade);
-    rotuloFiltro = 'Aguardando visita do ACS até 30 dias';
+    linhas = linhas.filter(({ c, av }) => num(c, 'vis30d') === 0 && av.idade <= 30)
+      .sort((a, b) => a.av.idade - b.av.idade);
+    rotuloFiltro = 'Busca ativa: visita do ACS até 30 dias (ainda dentro do prazo)';
   } else if (FILTRO_STATUS === 'acs6m') {
-    linhas = linhas.filter(({ c, av }) => num(c, 'vis6m') === 0 && av.idade >= av.por.vis6m.inicio6m)
-      .sort((a, b) => b.av.idade - a.av.idade);
-    rotuloFiltro = 'Aguardando visita do ACS aos 6 meses (completaram 6 meses)';
+    linhas = linhas.filter(({ c, av }) =>
+        num(c, 'vis6m') === 0 && av.idade >= av.por.vis6m.inicio6m && av.idade <= av.por.vis6m.fim6m29d)
+      .sort((a, b) => a.av.idade - b.av.idade);
+    rotuloFiltro = 'Busca ativa: visita do ACS aos 6 meses (ainda dentro do prazo)';
   } else if (FILTRO_STATUS === 'prazo') {
     linhas = linhas.filter(({ av }) => av.cumpridos < CRITERIOS.length)
       .sort((a, b) => a.av.ate2a - b.av.ate2a);
@@ -632,7 +636,7 @@ function telaLista() {
             ${linhas.map(({ c, av }) => `
               <tr class="linha" onclick="abrirCrianca('${c.id}')">
                 <td><strong>${esc(c.nome)}</strong><br><small style="color:var(--texto-suave)">mãe: ${esc(c.mae || '—')}</small></td>
-                <td>${idadeTxt(av.idade)}${num(c,'vis30d') === 0 ? `<br><span class="chip ${av.idade > 30 ? 'risco' : 'apertado'}" style="margin-top:.3rem; display:inline-block">🚪 visita ACS 30d</span>` : ''}${num(c,'vis6m') === 0 && av.idade >= av.por.vis6m.inicio6m ? `<br><span class="chip ${av.idade > av.por.vis6m.fim6m29d ? 'risco' : 'apertado'}" style="margin-top:.3rem; display:inline-block">👶 visita ACS 6m</span>` : ''}</td>
+                <td>${idadeTxt(av.idade)}${num(c,'vis30d') === 0 && av.idade <= 30 ? `<br><span class="chip ${(30 - av.idade) <= 7 ? 'risco' : 'apertado'}" style="margin-top:.3rem; display:inline-block">🚪 visita ACS 30d</span>` : ''}${num(c,'vis6m') === 0 && av.idade >= av.por.vis6m.inicio6m && av.idade <= av.por.vis6m.fim6m29d ? `<br><span class="chip ${(av.por.vis6m.fim6m29d - av.idade) <= 7 ? 'risco' : 'apertado'}" style="margin-top:.3rem; display:inline-block">👶 visita ACS 6m</span>` : ''}</td>
                 <td>${av.ate2a > 0 ? dias(av.ate2a) : '—'}</td>
                 <td><div class="pastilhas">${av.itens.map(i =>
                   `<i class="${i.ok ? 'on' : i.st === 'perdido' ? 'mal' : ''}" title="${esc(i.rotulo)}"></i>`).join('')}</div></td>
