@@ -13,8 +13,9 @@
     --verde-900:#0B1F17; --verde-800:#12352A; --verde-600:#1E5340; --verde-400:#4A8570;
     --areia:#F7F3EC; --areia-2:#EFE7DA; --areia-3:#E3D8C6;
     --rose:#B87F6C; --texto:#17251F; --texto-suave:#5D6E66;
-    --ocre:#9A6F23; --ocre-bg:#F4E8CD;
-    --erro:#A34A31; --erro-bg:#F3DFD7;
+    --ocre:#CA8A04; --ocre-bg:#FEF3C7;
+    --erro:#DC2626; --erro-bg:#FEE2E2;
+    --verde-sinal:#15803D;
   }
   * { box-sizing:border-box; }
   body { margin:0; font-family:'Inter',sans-serif; font-size:15px; background:var(--areia); color:var(--texto); }
@@ -243,7 +244,7 @@ const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;
 const dataISO = d => d.toISOString().slice(0,10);
 const fmt = iso => { const [a,m,d] = iso.split('-'); return `${d}/${m}/${a}`; };
 const pct = (n, d) => d ? Math.round(n / d * 100) : 0;
-const corPct = v => v >= 70 ? '#1E5340' : v >= 40 ? '#9A6F23' : '#A34A31';
+const corPct = v => v >= 70 ? '#15803D' : v >= 40 ? '#CA8A04' : '#DC2626';
 const dias = n => n + (Math.abs(n) === 1 ? ' dia' : ' dias');
 
 function diasDeVida(nasc) {
@@ -422,13 +423,42 @@ function telaVisao() {
     .sort((a, b) => a.av.ate2a - b.av.ate2a)
     .slice(0, 12);
 
+  // Menos de 6 meses, ainda sem a visita domiciliar do ACS aos 6 meses
+  const menores6m = avs.filter(x => x.av.idade < 183 && num(x.c, 'vis6m') === 0)
+    .sort((a, b) => b.av.idade - a.av.idade); // mais perto do prazo primeiro
+  const urgentesACS = menores6m.filter(x => (PRAZO_VIS6 - x.av.idade) <= 30);
+  const corACS = urgentesACS.length ? 'cor-erro' : menores6m.length ? 'cor-ocre' : 'cor-verde';
+
   return `
     <div class="cartoes">
       <div class="cartao"><span>Crianças</span><strong>${n}</strong><small>no acompanhamento</small></div>
       <div class="cartao cor-verde"><span>Pontuação média</span><strong>${media.toFixed(2).replace('.',',')}</strong><small>de 1,00 possível</small></div>
       <div class="cartao cor-ocre"><span>Prazo mais curto</span><strong>${maisCurto ?? '—'}</strong><small>${maisCurto != null ? 'dias para os 2 anos' : 'nenhum prazo aberto'}</small></div>
       <div class="cartao cor-erro"><span>Precisam de você</span><strong>${emRisco + apertado}</strong><small>${emRisco} em risco · ${apertado} apertada${apertado === 1 ? '' : 's'}</small></div>
+      <div class="cartao ${corACS}"><span>&lt; 6 meses · visita ACS</span><strong>${menores6m.length}</strong><small>${urgentesACS.length ? urgentesACS.length + ' urgente' + (urgentesACS.length===1?'':'s') + ' (prazo &lt; 30 dias)' : menores6m.length ? 'ainda dentro do prazo' : 'tudo em dia'}</small></div>
     </div>
+
+    ${menores6m.length ? `
+    <div class="bloco">
+      <div class="bloco-topo">
+        <h2>Menores de 6 meses — visita do ACS pendente</h2>
+        <span class="dica">repassar para o agente comunitário de saúde</span>
+      </div>
+      <div class="tabela-wrap"><table>
+        <thead><tr><th>Criança</th><th>Idade</th><th>Prazo da visita (240 dias)</th><th>Microárea</th></tr></thead>
+        <tbody>${menores6m.map(({ c, av }) => {
+          const restam = PRAZO_VIS6 - av.idade;
+          const urgente = restam <= 30;
+          return `
+          <tr class="linha" onclick="abrirCrianca('${c.id}')">
+            <td><strong>${esc(c.nome)}</strong></td>
+            <td>${idadeTxt(av.idade)}</td>
+            <td><span class="chip ${urgente ? 'risco' : 'apertado'}">${restam > 0 ? dias(restam) + ' restantes' : 'vencido'}</span></td>
+            <td>${esc(c.microarea || '—')}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div>
+    </div>` : ''}
 
     <div class="bloco">
       <div class="bloco-topo">
@@ -523,7 +553,7 @@ function telaLista() {
             ${linhas.map(({ c, av }) => `
               <tr class="linha" onclick="abrirCrianca('${c.id}')">
                 <td><strong>${esc(c.nome)}</strong><br><small style="color:var(--texto-suave)">mãe: ${esc(c.mae || '—')}</small></td>
-                <td>${idadeTxt(av.idade)}</td>
+                <td>${idadeTxt(av.idade)}${av.idade < 183 && num(c,'vis6m') === 0 ? `<br><span class="chip ${(PRAZO_VIS6 - av.idade) <= 30 ? 'risco' : 'apertado'}" style="margin-top:.3rem; display:inline-block">👶 visita ACS</span>` : ''}</td>
                 <td>${av.ate2a > 0 ? dias(av.ate2a) : '—'}</td>
                 <td><div class="pastilhas">${av.itens.map(i =>
                   `<i class="${i.ok ? 'on' : i.st === 'perdido' ? 'mal' : ''}" title="${esc(i.rotulo)}"></i>`).join('')}</div></td>
