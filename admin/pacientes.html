@@ -230,12 +230,14 @@ const VACINAS = [
 ];
 
 const CRITERIOS = [
-  { id:'visitas',  rotulo:'Visita domiciliar até 30 dias e aos 6 meses' },
+  { id:'vis30d',   rotulo:'Visita domiciliar até 30 dias' },
+  { id:'vis6m',    rotulo:'Visita domiciliar aos 6 meses' },
   { id:'cons30d',  rotulo:'1ª consulta até 30 dias de vida' },
   { id:'cons2a',   rotulo:'9 consultas até 2 anos' },
   { id:'pesalt2a', rotulo:'9 consultas com peso e altura' },
   { id:'vacinas',  rotulo:'Vacinas do calendário em dia' }
 ];
+const PESO_CRITERIO = 1 / CRITERIOS.length;
 
 let P = null, VIEW = 'visao', SEL = null, EDITANDO = null, BUSCA = '', FILTRO_MICRO = null, FILTRO_STATUS = null;
 
@@ -288,17 +290,16 @@ function avaliar(c) {
   const vac = c.vacinas || {};
   const vacFeitas = VACINAS.filter(v => vac[v.id]).length;
 
-  // o indicador exige apenas 1 das duas visitas (30 dias OU 6 meses), não as duas.
-  // Enquanto nenhuma foi feita, o prazo vale até os 240 dias (janela da visita de 6 meses),
-  // que é o limite mais generoso — a de 30 dias vencer não invalida o indicador.
-  const vis30 = num(c, 'vis30d'), vis6 = num(c, 'vis6m');
-  const visitas = item('visitas', 'Visita domiciliar até 30 dias e aos 6 meses',
-    (vis30 ? 1 : 0) + (vis6 ? 1 : 0), 1,
-    PRAZO_VIS6 - idade, ['visita','visitas']);
-  visitas.detalhe = `até 30 dias: ${vis30 ? vis30 : 'nenhuma'} · aos 6 meses: ${vis6 ? vis6 : 'nenhuma'}`;
+  // Visita domiciliar até 30 dias — critério próprio do ACS, prazo irrecuperável aos 30 dias.
+  const vis30item = item('vis30d', 'Visita domiciliar até 30 dias',
+    num(c,'vis30d') ? 1 : 0, 1, PRAZO_30D - idade, ['visita','visitas']);
+  // Visita domiciliar aos 6 meses — critério próprio do ACS, janela até 240 dias.
+  const vis6item = item('vis6m', 'Visita domiciliar aos 6 meses',
+    num(c,'vis6m') ? 1 : 0, 1, PRAZO_VIS6 - idade, ['visita','visitas']);
 
   const itens = [
-    visitas,
+    vis30item,
+    vis6item,
     item('cons30d',  '1ª consulta até 30 dias de vida',  num(c,'cons30d') ? 1 : 0, 1, PRAZO_30D - idade, ['consulta','consultas']),
     item('cons2a',   '9 consultas até 2 anos',           num(c,'cons2a'),   META_CONS, ate2a, ['consulta','consultas']),
     item('pesalt2a', '9 consultas com peso e altura',    num(c,'pesalt2a'), META_CONS, ate2a, ['com medida','com medida']),
@@ -306,10 +307,10 @@ function avaliar(c) {
   ];
 
   const cumpridos = itens.filter(i => i.ok).length;
-  const pontuacao = cumpridos * 0.2;
+  const pontuacao = cumpridos * PESO_CRITERIO;
 
   let status;
-  if (cumpridos === 5) status = 'completa';
+  if (cumpridos === itens.length) status = 'completa';
   else if (ate2a <= 0) status = 'encerrada';
   else if (itens.some(i => i.st === 'perdido')) status = 'risco';
   else if (itens.some(i => i.st === 'apertado')) status = 'apertado';
@@ -406,7 +407,7 @@ function telaVisao() {
     const feito = avs.filter(x => x.av.por[cr.id].ok).length;
     return { ...cr, feito, valor: pct(feito, n) };
   });
-  const geral = n ? Math.round(indicadores.reduce((s, i) => s + i.valor, 0) / 5) : 0;
+  const geral = n ? Math.round(indicadores.reduce((s, i) => s + i.valor, 0) / CRITERIOS.length) : 0;
   const media = n ? avs.reduce((s, x) => s + x.av.pontuacao, 0) / n : 0;
 
   const emRisco  = avs.filter(x => x.av.status === 'risco').length;
@@ -415,8 +416,8 @@ function telaVisao() {
   const maisCurto = prazos.length ? Math.min(...prazos) : null;
 
   // distribuição de pontuação, igual à coluna do relatório oficial
-  const faixas = [0, 1, 2, 3, 4, 5].map(k => ({
-    rotulo: (k * 0.2).toFixed(2).replace('.', ','),
+  const faixas = CRITERIOS.map((_, k) => k).concat(CRITERIOS.length).map(k => ({
+    rotulo: (k * PESO_CRITERIO).toFixed(2).replace('.', ','),
     n: avs.filter(x => x.av.cumpridos === k).length
   }));
   const maxFaixa = Math.max(1, ...faixas.map(f => f.n));
@@ -474,8 +475,8 @@ function telaVisao() {
         <div class="barra-lin">
           <div>
             <div style="font-size:.92rem; margin-bottom:.2rem">${esc(i.rotulo)}</div>
-            ${i.id === 'visitas' ? '<small class="dica" style="display:block; margin-bottom:.35rem">Registrado pelo agente comunitário de saúde (ACS)</small>' : ''}
-            <div class="trilho" style="height:7px; margin-top:${i.id === 'visitas' ? '0' : '.25rem'}"><i style="width:${i.valor}%; background:${corPct(i.valor)}"></i></div>
+            ${(i.id === 'vis30d' || i.id === 'vis6m') ? '<small class="dica" style="display:block; margin-bottom:.35rem">Registrado pelo agente comunitário de saúde (ACS)</small>' : ''}
+            <div class="trilho" style="height:7px; margin-top:${(i.id === 'vis30d' || i.id === 'vis6m') ? '0' : '.25rem'}"><i style="width:${i.valor}%; background:${corPct(i.valor)}"></i></div>
           </div>
           <div style="text-align:right; min-width:96px">
             <strong style="font-family:'Fraunces',serif; font-size:1.35rem; color:${corPct(i.valor)}">${i.valor}%</strong>
@@ -483,8 +484,9 @@ function telaVisao() {
           </div>
         </div>`).join('')}
       <p class="dica" style="margin-top:1rem">
-        Cada critério vale 0,20 na pontuação da criança. O percentual é quantas
-        crianças já cumpriram o critério inteiro — é assim que o relatório oficial conta.
+        Cada um dos ${CRITERIOS.length} critérios vale ${PESO_CRITERIO.toFixed(2).replace('.',',')} na pontuação da criança
+        (visita de 30 dias e a de 6 meses agora contam separado). O percentual é quantas
+        crianças já cumpriram o critério inteiro.
       </p>
     </div>
 
@@ -605,7 +607,7 @@ function telaMicro() {
       const feito = itens.filter(x => x.av.por[cr.id].ok).length;
       return { ...cr, valor: pct(feito, n) };
     });
-    const geral = Math.round(indicadores.reduce((s, i) => s + i.valor, 0) / 5);
+    const geral = Math.round(indicadores.reduce((s, i) => s + i.valor, 0) / CRITERIOS.length);
     const media = itens.reduce((s, x) => s + x.av.pontuacao, 0) / n;
     const risco = itens.filter(x => x.av.status === 'risco').length;
     const apertado = itens.filter(x => x.av.status === 'apertado').length;
@@ -621,7 +623,8 @@ function telaMicro() {
   const mediaGeral = Math.round(linhas.reduce((s, l) => s + l.geral, 0) / linhas.length);
 
   const rotuloCurto = r => r
-    .replace('Visita domiciliar até 30 dias e aos 6 meses', 'Visitas')
+    .replace('Visita domiciliar até 30 dias', 'Visita 30d')
+    .replace('Visita domiciliar aos 6 meses', 'Visita 6m')
     .replace('1ª consulta até 30 dias de vida', '1ª consulta')
     .replace('9 consultas até 2 anos', '9 consultas')
     .replace('9 consultas com peso e altura', 'Peso/altura')
@@ -667,7 +670,7 @@ function telaMicro() {
         <table>
           <thead><tr>
             <th>Microárea</th><th>Crianças</th>
-            ${CRITERIOS.map(c => `<th${c.id === 'visitas' ? ' title="Registrado pelo agente comunitário de saúde (ACS)"' : ''}>${esc(rotuloCurto(c.rotulo))}</th>`).join('')}
+            ${CRITERIOS.map(c => `<th${(c.id === 'vis30d' || c.id === 'vis6m') ? ' title="Registrado pelo agente comunitário de saúde (ACS)"' : ''}>${esc(rotuloCurto(c.rotulo))}</th>`).join('')}
           </tr></thead>
           <tbody>
             ${linhas.map(l => `
@@ -733,10 +736,10 @@ function telaCrianca() {
       <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:1.4rem">
         <div>
           <span class="dica">Pontuação</span>
-          <div style="font-family:'Fraunces',serif; font-size:2.4rem; line-height:1.1; color:${corPct(av.cumpridos * 20)}">
+          <div style="font-family:'Fraunces',serif; font-size:2.4rem; line-height:1.1; color:${corPct(pct(av.cumpridos, CRITERIOS.length))}">
             ${av.pontuacao.toFixed(2).replace('.',',')}
           </div>
-          <span class="dica">${av.cumpridos} de 5 critérios</span>
+          <span class="dica">${av.cumpridos} de ${CRITERIOS.length} critérios</span>
         </div>
         <div>
           <span class="dica">Completa 2 anos em</span>
@@ -759,18 +762,10 @@ function telaCrianca() {
       </div>
 
       ${linhaContador(c.id, 'vis30d', 'Visita domiciliar até 30 dias',
-        'agente comunitário (ACS)', num(c,'vis30d'),
-        num(c,'vis30d') ? 'ok' : av.idade > PRAZO_30D ? 'perdido' : 'aberto',
-        num(c,'vis30d') ? 'cumprida' : av.idade > PRAZO_30D
-          ? `prazo vencido há ${dias(av.idade - PRAZO_30D)}`
-          : `${dias(PRAZO_30D - av.idade)} de prazo`)}
+        'agente comunitário (ACS)', num(c,'vis30d'), av.por.vis30d.st, av.por.vis30d.nota)}
 
       ${linhaContador(c.id, 'vis6m', 'Visita domiciliar aos 6 meses',
-        'agente comunitário (ACS)', num(c,'vis6m'),
-        num(c,'vis6m') ? 'ok' : av.idade > PRAZO_VIS6 ? 'perdido' : 'aberto',
-        num(c,'vis6m') ? 'cumprida' : av.idade > PRAZO_VIS6
-          ? `prazo vencido há ${dias(av.idade - PRAZO_VIS6)}`
-          : `${dias(PRAZO_VIS6 - av.idade)} de prazo`)}
+        'agente comunitário (ACS)', num(c,'vis6m'), av.por.vis6m.st, av.por.vis6m.nota)}
 
       ${linhaContador(c.id, 'cons30d', '1ª consulta até 30 dias de vida',
         null, num(c,'cons30d'), av.por.cons30d.st, av.por.cons30d.nota)}
