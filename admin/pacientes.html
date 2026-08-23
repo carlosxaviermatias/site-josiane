@@ -125,6 +125,9 @@
   .trilho i { display:block; height:100%; border-radius:100px; transition:width 600ms cubic-bezier(.22,.61,.36,1); }
   .barra-lin { display:grid; grid-template-columns:1fr auto; gap:.4rem 1rem; align-items:center; padding:.85rem 0; border-bottom:1px solid var(--areia-2); }
   .barra-lin:last-child { border-bottom:0; }
+  .barra-lin.linha { transition:120ms; margin:0 -.6rem; padding-left:.6rem; padding-right:.6rem; border-radius:4px; }
+  .barra-lin.linha:hover, div.linha:hover { background:var(--areia); }
+  div.linha { transition:120ms; }
 
   /* tabela */
   .tabela-wrap { overflow-x:auto; }
@@ -314,7 +317,21 @@ const CRITERIOS = [
 ];
 const PESO_CRITERIO = 1 / CRITERIOS.length;
 
-let P = null, VIEW = 'visao', SEL = null, EDITANDO = null, BUSCA = '', FILTRO_MICRO = null, FILTRO_STATUS = null;
+let P = null, VIEW = 'visao', SEL = null, EDITANDO = null, BUSCA = '', FILTRO_MICRO = null, FILTRO_STATUS = null,
+    FILTRO_CRITERIO = null, FILTRO_PONTUACAO = null;
+
+// Zera os outros filtros antes de aplicar um novo — só um por vez, senão a
+// combinação vira confusão ("cons2a pendente" + "microárea 03" ao mesmo tempo).
+function irParaLista(tipo, valor) {
+  FILTRO_MICRO = null; FILTRO_STATUS = null; FILTRO_CRITERIO = null; FILTRO_PONTUACAO = null;
+  if (tipo === 'micro') FILTRO_MICRO = valor;
+  else if (tipo === 'status') FILTRO_STATUS = valor;
+  else if (tipo === 'criterio') FILTRO_CRITERIO = valor;
+  else if (tipo === 'pontuacao') FILTRO_PONTUACAO = valor;
+  VIEW = 'lista'; SEL = null; BUSCA = '';
+  render();
+  window.scrollTo(0, 0);
+}
 
 // Formato escolhido para cada gráfico (a escolha sobrevive ao re-render).
 let GRAFICO = { criterios: 'barras', pontuacao: 'barras', micro: 'barras' };
@@ -339,10 +356,13 @@ function svgPizza(fatias, tam = 200) {
   if (!total) return '<p class="dica">Sem dados para o gráfico.</p>';
   const r = tam / 2;
 
+  // f.onClique, quando presente, é uma chamada JS pronta (ex.: "irParaLista('pontuacao',3)").
+  const atrClique = f => f.onClique ? ` style="cursor:pointer" onclick="${f.onClique}"` : '';
+
   // Uma fatia só = círculo inteiro: o arco degenera quando início e fim coincidem.
   if (usadas.length === 1) {
     return `<svg viewBox="0 0 ${tam} ${tam}" width="${tam}" height="${tam}" role="img">
-      <circle cx="${r}" cy="${r}" r="${r}" fill="${usadas[0].cor}"></circle></svg>`;
+      <circle cx="${r}" cy="${r}" r="${r}" fill="${usadas[0].cor}"${atrClique(usadas[0])}></circle></svg>`;
   }
 
   let ang = -Math.PI / 2;   // começa no topo
@@ -353,7 +373,7 @@ function svgPizza(fatias, tam = 200) {
     const x2 = r + r * Math.cos(ang), y2 = r + r * Math.sin(ang);
     const arcoGrande = abertura > Math.PI ? 1 : 0;
     return `<path d="M ${r} ${r} L ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${arcoGrande} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} Z"
-      fill="${f.cor}" stroke="#fff" stroke-width="1.5"><title>${esc(f.rotulo)}: ${f.valor}</title></path>`;
+      fill="${f.cor}" stroke="#fff" stroke-width="1.5"${atrClique(f)}><title>${esc(f.rotulo)}: ${f.valor}</title></path>`;
   }).join('');
 
   return `<svg viewBox="0 0 ${tam} ${tam}" width="${tam}" height="${tam}" role="img">${partes}</svg>`;
@@ -361,9 +381,10 @@ function svgPizza(fatias, tam = 200) {
 
 function legendaPizza(fatias) {
   const total = fatias.reduce((s, f) => s + f.valor, 0) || 1;
-  return `<div style="display:flex; flex-direction:column; gap:.45rem; min-width:170px">
+  return `<div style="display:flex; flex-direction:column; gap:.2rem; min-width:170px">
     ${fatias.filter(f => f.valor > 0).map(f => `
-      <div style="display:flex; align-items:center; gap:.55rem; font-size:.84rem">
+      <div class="${f.onClique ? 'linha' : ''}" style="display:flex; align-items:center; gap:.55rem; font-size:.84rem; padding:.25rem .4rem; margin:0 -.4rem; border-radius:4px; ${f.onClique ? 'cursor:pointer' : ''}"
+        ${f.onClique ? `onclick="${f.onClique}" title="Ver essas crianças"` : ''}>
         <i style="width:12px; height:12px; border-radius:3px; background:${f.cor}; flex:0 0 auto"></i>
         <span style="flex:1">${esc(f.rotulo)}</span>
         <strong>${f.valor}</strong>
@@ -538,7 +559,7 @@ function render() {
     <button class="${VIEW==='visao'?'ativa':''}" onclick="VIEW='visao'; SEL=null; render()">
       Onde estou${pendentes ? `<span class="badge">${pendentes}</span>` : ''}
     </button>
-    <button class="${VIEW==='lista'||VIEW==='crianca'?'ativa':''}" onclick="VIEW='lista'; SEL=null; FILTRO_MICRO=null; FILTRO_STATUS=null; render()">Crianças</button>
+    <button class="${VIEW==='lista'||VIEW==='crianca'?'ativa':''}" onclick="FILTRO_MICRO=null; FILTRO_STATUS=null; FILTRO_CRITERIO=null; FILTRO_PONTUACAO=null; VIEW='lista'; SEL=null; render()">Crianças</button>
     <button class="${VIEW==='micro'?'ativa':''}" onclick="VIEW='micro'; render()">Microáreas</button>
     <button class="${VIEW==='form'?'ativa':''}" onclick="VIEW='form'; EDITANDO=null; render()">+ Cadastrar</button>
     <button onclick="document.getElementById('input-csv').click()">⇪ Importar CSV do e-SUS</button>`;
@@ -587,6 +608,7 @@ function telaVisao() {
 
   // distribuição de pontuação, igual à coluna do relatório oficial
   const faixas = CRITERIOS.map((_, k) => k).concat(CRITERIOS.length).map(k => ({
+    k,
     rotulo: (k * PESO_CRITERIO).toFixed(2).replace('.', ','),
     n: avs.filter(x => x.av.cumpridos === k).length
   }));
@@ -617,10 +639,10 @@ function telaVisao() {
     <div class="cartoes">
       <div class="cartao"><span>Crianças</span><strong>${n}</strong><small>no acompanhamento</small></div>
       <div class="cartao cor-verde"><span>Pontuação média</span><strong>${media.toFixed(2).replace('.',',')}</strong><small>de 1,00 possível</small></div>
-      <div class="cartao cor-ocre" style="cursor:pointer" onclick="FILTRO_STATUS='prazo'; FILTRO_MICRO=null; VIEW='lista'; SEL=null; BUSCA=''; render(); window.scrollTo(0,0)" title="Ver crianças com prazo em aberto, da mais urgente pra menos"><span>Prazo mais curto</span><strong>${maisCurto ?? '—'}</strong><small>${maisCurto != null ? 'dias para os 2 anos' : 'nenhum prazo aberto'}</small></div>
-      <div class="cartao cor-erro" style="cursor:pointer" onclick="FILTRO_STATUS='atencao'; FILTRO_MICRO=null; VIEW='lista'; SEL=null; BUSCA=''; render(); window.scrollTo(0,0)" title="Ver crianças em risco ou apertadas"><span>Precisam de você</span><strong>${emRisco + apertado}</strong><small>${emRisco} em risco · ${apertado} apertada${apertado === 1 ? '' : 's'}</small></div>
-      <div class="cartao ${corACS30d}" style="cursor:pointer" onclick="FILTRO_STATUS='acs30d'; FILTRO_MICRO=null; VIEW='lista'; SEL=null; BUSCA=''; render(); window.scrollTo(0,0)" title="Busca ativa: visita do ACS até 30 dias, ainda dentro do prazo"><span>Visita ACS · 30 dias</span><strong>${pendentes30d.length}</strong><small>${urgentes30d.length ? urgentes30d.length + ' urgente' + (urgentes30d.length===1?'':'s') + ' (≤ 7 dias)' : pendentes30d.length ? 'dentro do prazo' : 'tudo em dia'}</small></div>
-      <div class="cartao ${corACS6m}" style="cursor:pointer" onclick="FILTRO_STATUS='acs6m'; FILTRO_MICRO=null; VIEW='lista'; SEL=null; BUSCA=''; render(); window.scrollTo(0,0)" title="Busca ativa: visita do ACS aos 6 meses, ainda dentro do prazo"><span>Visita ACS · 6 meses</span><strong>${pendentes6m.length}</strong><small>${urgentes6m.length ? urgentes6m.length + ' urgente' + (urgentes6m.length===1?'':'s') + ' (≤ 7 dias)' : pendentes6m.length ? 'dentro do prazo' : 'tudo em dia'}</small></div>
+      <div class="cartao cor-ocre" style="cursor:pointer" onclick="irParaLista('status','prazo')" title="Ver crianças com prazo em aberto, da mais urgente pra menos"><span>Prazo mais curto</span><strong>${maisCurto ?? '—'}</strong><small>${maisCurto != null ? 'dias para os 2 anos' : 'nenhum prazo aberto'}</small></div>
+      <div class="cartao cor-erro" style="cursor:pointer" onclick="irParaLista('status','atencao')" title="Ver crianças em risco ou apertadas"><span>Precisam de você</span><strong>${emRisco + apertado}</strong><small>${emRisco} em risco · ${apertado} apertada${apertado === 1 ? '' : 's'}</small></div>
+      <div class="cartao ${corACS30d}" style="cursor:pointer" onclick="irParaLista('status','acs30d')" title="Busca ativa: visita do ACS até 30 dias, ainda dentro do prazo"><span>Visita ACS · 30 dias</span><strong>${pendentes30d.length}</strong><small>${urgentes30d.length ? urgentes30d.length + ' urgente' + (urgentes30d.length===1?'':'s') + ' (≤ 7 dias)' : pendentes30d.length ? 'dentro do prazo' : 'tudo em dia'}</small></div>
+      <div class="cartao ${corACS6m}" style="cursor:pointer" onclick="irParaLista('status','acs6m')" title="Busca ativa: visita do ACS aos 6 meses, ainda dentro do prazo"><span>Visita ACS · 6 meses</span><strong>${pendentes6m.length}</strong><small>${urgentes6m.length ? urgentes6m.length + ' urgente' + (urgentes6m.length===1?'':'s') + ' (≤ 7 dias)' : pendentes6m.length ? 'dentro do prazo' : 'tudo em dia'}</small></div>
     </div>
 
     ${pendentes30d.length ? `
@@ -683,27 +705,36 @@ function telaVisao() {
           </div>
         </div>
       </div>
-      ${GRAFICO.criterios === 'rosca' ? `
-        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1.4rem .8rem">
-          ${indicadores.map(i => `
-            <div style="text-align:center">
-              ${svgRosca(i.valor, corPct(i.valor))}
-              <div style="font-size:.82rem; margin-top:.5rem; line-height:1.3">${esc(i.rotulo)}</div>
-              <small class="dica">${i.feito} de ${n}${(i.id === 'vis30d' || i.id === 'vis6m') ? ' · ACS' : ''}</small>
-            </div>`).join('')}
-        </div>`
-      : indicadores.map(i => `
-        <div class="barra-lin">
-          <div>
-            <div style="font-size:.92rem; margin-bottom:.2rem">${esc(i.rotulo)}</div>
-            ${(i.id === 'vis30d' || i.id === 'vis6m') ? '<small class="dica" style="display:block; margin-bottom:.35rem">Registrado pelo agente comunitário de saúde (ACS)</small>' : ''}
-            <div class="trilho" style="height:7px; margin-top:${(i.id === 'vis30d' || i.id === 'vis6m') ? '0' : '.25rem'}"><i style="width:${i.valor}%; background:${corPct(i.valor)}"></i></div>
-          </div>
-          <div style="text-align:right; min-width:96px">
-            <strong style="font-family:'Fraunces',serif; font-size:1.35rem; color:${corPct(i.valor)}">${i.valor}%</strong>
-            <small style="display:block; font-size:.72rem; color:var(--texto-suave)">${i.feito} de ${n}</small>
-          </div>
-        </div>`).join('')}
+      ${(() => {
+        // vis30d/vis6m usam o filtro de busca ativa (só quem ainda dá tempo);
+        // os demais critérios usam o filtro genérico de pendências.
+        const alvoClique = id => id === 'vis30d' ? "irParaLista('status','acs30d')"
+          : id === 'vis6m' ? "irParaLista('status','acs6m')"
+          : `irParaLista('criterio','${id}')`;
+
+        if (GRAFICO.criterios === 'rosca') {
+          return `<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1.4rem .8rem">
+            ${indicadores.map(i => `
+              <div style="text-align:center; cursor:pointer" onclick="${alvoClique(i.id)}" title="Ver crianças pendentes neste critério">
+                ${svgRosca(i.valor, corPct(i.valor))}
+                <div style="font-size:.82rem; margin-top:.5rem; line-height:1.3">${esc(i.rotulo)}</div>
+                <small class="dica">${i.feito} de ${n}${(i.id === 'vis30d' || i.id === 'vis6m') ? ' · ACS' : ''}</small>
+              </div>`).join('')}
+          </div>`;
+        }
+        return indicadores.map(i => `
+          <div class="barra-lin linha" style="cursor:pointer" onclick="${alvoClique(i.id)}" title="Ver crianças pendentes neste critério">
+            <div>
+              <div style="font-size:.92rem; margin-bottom:.2rem">${esc(i.rotulo)}</div>
+              ${(i.id === 'vis30d' || i.id === 'vis6m') ? '<small class="dica" style="display:block; margin-bottom:.35rem">Registrado pelo agente comunitário de saúde (ACS)</small>' : ''}
+              <div class="trilho" style="height:7px; margin-top:${(i.id === 'vis30d' || i.id === 'vis6m') ? '0' : '.25rem'}"><i style="width:${i.valor}%; background:${corPct(i.valor)}"></i></div>
+            </div>
+            <div style="text-align:right; min-width:96px">
+              <strong style="font-family:'Fraunces',serif; font-size:1.35rem; color:${corPct(i.valor)}">${i.valor}%</strong>
+              <small style="display:block; font-size:.72rem; color:var(--texto-suave)">${i.feito} de ${n}</small>
+            </div>
+          </div>`).join('');
+      })()}
       <p class="dica" style="margin-top:1rem">
         Cada um dos ${CRITERIOS.length} critérios vale ${PESO_CRITERIO.toFixed(2).replace('.',',')} na pontuação da criança
         (visita de 30 dias e a de 6 meses agora contam separado). O percentual é quantas
@@ -722,9 +753,10 @@ function telaVisao() {
       </div>
       ${GRAFICO.pontuacao === 'pizza' ? (() => {
           const fatias = faixas.map(f => ({
-            rotulo: `${f.rotulo} — ${Math.round(parseFloat(f.rotulo.replace(',','.')) * CRITERIOS.length)} de ${CRITERIOS.length} critérios`,
+            rotulo: `${f.rotulo} — ${f.k} de ${CRITERIOS.length} critérios`,
             valor: f.n,
-            cor: corPct(parseFloat(f.rotulo.replace(',','.')) * 100)
+            cor: corPct(parseFloat(f.rotulo.replace(',','.')) * 100),
+            onClique: f.n ? `irParaLista('pontuacao',${f.k})` : null
           }));
           return `<div style="display:flex; gap:2rem; align-items:center; justify-content:center; flex-wrap:wrap">
             ${svgPizza(fatias)}
@@ -732,7 +764,8 @@ function telaVisao() {
           </div>`;
         })()
       : faixas.map(f => `
-        <div style="display:grid; grid-template-columns:44px 1fr 30px; gap:.9rem; align-items:center; margin-bottom:.5rem">
+        <div class="barra-lin linha" style="grid-template-columns:44px 1fr 30px; cursor:${f.n ? 'pointer' : 'default'}"
+          ${f.n ? `onclick="irParaLista('pontuacao',${f.k})" title="Ver essas crianças"` : ''}>
           <span style="font-family:'Fraunces',serif; font-size:1rem; color:var(--texto-suave)">${f.rotulo}</span>
           <div class="trilho" style="height:16px; border-radius:3px">
             <i style="width:${f.n / maxFaixa * 100}%; border-radius:3px; background:${corPct(parseFloat(f.rotulo.replace(',','.')) * 100)}"></i>
@@ -789,6 +822,15 @@ function telaLista() {
     linhas = linhas.filter(({ av }) => av.cumpridos < CRITERIOS.length)
       .sort((a, b) => a.av.ate2a - b.av.ate2a);
     rotuloFiltro = 'Com prazo em aberto, da mais urgente pra menos';
+  } else if (FILTRO_CRITERIO) {
+    const cr = CRITERIOS.find(c => c.id === FILTRO_CRITERIO);
+    linhas = linhas.filter(({ av }) => !av.por[FILTRO_CRITERIO].ok)
+      .sort((a, b) => a.av.por[FILTRO_CRITERIO].restam - b.av.por[FILTRO_CRITERIO].restam);
+    rotuloFiltro = `Pendente: ${cr ? cr.rotulo : FILTRO_CRITERIO}`;
+  } else if (FILTRO_PONTUACAO != null) {
+    linhas = linhas.filter(({ av }) => av.cumpridos === FILTRO_PONTUACAO)
+      .sort((a, b) => a.av.ate2a - b.av.ate2a);
+    rotuloFiltro = `Pontuação ${(FILTRO_PONTUACAO * PESO_CRITERIO).toFixed(2).replace('.', ',')} (${FILTRO_PONTUACAO} de ${CRITERIOS.length} critérios)`;
   }
 
   const termo = BUSCA.trim().toLowerCase();
@@ -813,7 +855,7 @@ function telaLista() {
       ${rotuloFiltro ? `
         <div style="display:flex; align-items:center; gap:.5rem; margin:-.6rem 0 1.2rem">
           <span class="chip risco">${esc(rotuloFiltro)}</span>
-          <button class="btn btn-linha" style="padding:.3rem .7rem; font-size:.66rem" onclick="FILTRO_STATUS=null; render()">✕ limpar filtro</button>
+          <button class="btn btn-linha" style="padding:.3rem .7rem; font-size:.66rem" onclick="FILTRO_STATUS=null; FILTRO_CRITERIO=null; FILTRO_PONTUACAO=null; render()">✕ limpar filtro</button>
         </div>` : ''}
       <div class="tabela-wrap">
         <table>
@@ -898,7 +940,7 @@ function telaMicro() {
         <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:1.4rem .8rem">
           ${linhas.map((l, i) => `
             <div style="text-align:center; cursor:pointer" title="Ver crianças desta microárea"
-              onclick='FILTRO_MICRO=${JSON.stringify(l.nome)}; FILTRO_STATUS=null; VIEW="lista"; SEL=null; BUSCA=""; render(); window.scrollTo(0,0)'>
+              onclick='irParaLista("micro", ${JSON.stringify(l.nome)})'>
               ${svgRosca(l.geral, corPct(l.geral))}
               <div style="font-size:.9rem; margin-top:.5rem"><strong>#${i + 1}</strong> · ${esc(l.nome)}</div>
               <small class="dica">${l.n} criança${l.n === 1 ? '' : 's'}${l.risco ? ` · ${l.risco} em risco` : ''}</small>
@@ -921,7 +963,7 @@ function telaMicro() {
             </p>`;
         })()
       : linhas.map((l, i) => `
-        <div class="barra-lin linha" style="cursor:pointer" onclick='FILTRO_MICRO=${JSON.stringify(l.nome)}; FILTRO_STATUS=null; VIEW="lista"; SEL=null; BUSCA=""; render(); window.scrollTo(0,0)' title="Ver crianças desta microárea">
+        <div class="barra-lin linha" style="cursor:pointer" onclick='irParaLista("micro", ${JSON.stringify(l.nome)})' title="Ver crianças desta microárea">
           <div>
             <div style="display:flex; align-items:baseline; gap:.55rem; margin-bottom:.45rem; flex-wrap:wrap">
               <span style="font-family:'Fraunces',serif; font-size:.95rem; color:var(--texto-suave)">#${i + 1}</span>
@@ -954,7 +996,7 @@ function telaMicro() {
           </tr></thead>
           <tbody>
             ${linhas.map(l => `
-              <tr class="linha" style="cursor:pointer" onclick='FILTRO_MICRO=${JSON.stringify(l.nome)}; FILTRO_STATUS=null; VIEW="lista"; SEL=null; BUSCA=""; render(); window.scrollTo(0,0)' title="Ver crianças desta microárea">
+              <tr class="linha" style="cursor:pointer" onclick='irParaLista("micro", ${JSON.stringify(l.nome)})' title="Ver crianças desta microárea">
                 <td><strong>${esc(l.nome)}</strong></td>
                 <td>${l.n}</td>
                 ${l.indicadores.map(i => `
@@ -1005,7 +1047,7 @@ function telaCrianca() {
         <div>
           <h2 style="margin-bottom:.2rem">${esc(c.nome)}</h2>
           <span class="dica">${idadeTxt(av.idade)} · nascimento ${fmt(c.nascimento)} · mãe: ${esc(c.mae || '—')}
-            ${c.telefone ? ' · ' + esc(c.telefone) : ''}${c.microarea ? ' · <a href="#" onclick=\'event.preventDefault(); FILTRO_MICRO=' + JSON.stringify(String(c.microarea).trim()) + '; FILTRO_STATUS=null; VIEW="lista"; SEL=null; BUSCA=""; render()\' style="color:var(--verde-600)">microárea ' + esc(c.microarea) + '</a>' : ''}</span>
+            ${c.telefone ? ' · ' + esc(c.telefone) : ''}${c.microarea ? ' · <a href="#" onclick=\'event.preventDefault(); irParaLista("micro", ' + JSON.stringify(String(c.microarea).trim()) + ')\' style="color:var(--verde-600)">microárea ' + esc(c.microarea) + '</a>' : ''}</span>
         </div>
         <div style="display:flex; gap:.6rem; align-items:center">
           <span class="chip ${av.status}">${ROTULO_STATUS[av.status]}</span>
