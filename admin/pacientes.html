@@ -316,6 +316,9 @@ const PESO_CRITERIO = 1 / CRITERIOS.length;
 
 let P = null, VIEW = 'visao', SEL = null, EDITANDO = null, BUSCA = '', FILTRO_MICRO = null, FILTRO_STATUS = null;
 
+// Formato escolhido para cada gráfico (a escolha sobrevive ao re-render).
+let GRAFICO = { criterios: 'barras', pontuacao: 'barras', micro: 'barras' };
+
 const HOJE = new Date(); HOJE.setHours(0,0,0,0);
 const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const dataISO = d => d.toISOString().slice(0,10);
@@ -323,6 +326,74 @@ const fmt = iso => { const [a,m,d] = iso.split('-'); return `${d}/${m}/${a}`; };
 const pct = (n, d) => d ? Math.round(n / d * 100) : 0;
 const corPct = v => v >= 70 ? '#15803D' : v >= 40 ? '#CA8A04' : '#DC2626';
 const dias = n => n + (Math.abs(n) === 1 ? ' dia' : ' dias');
+
+/* ── Gráficos em SVG ───────────────────────────────────────────────
+   Desenhados à mão, sem biblioteca: nada é baixado de fora e o mesmo
+   SVG vai junto na exportação em PDF. Cores literais (e não variáveis
+   CSS) porque a janela de impressão não carrega o :root daqui. */
+const CINZA_TRILHO = '#EFE7DA';
+
+function svgPizza(fatias, tam = 200) {
+  const usadas = fatias.filter(f => f.valor > 0);
+  const total = usadas.reduce((s, f) => s + f.valor, 0);
+  if (!total) return '<p class="dica">Sem dados para o gráfico.</p>';
+  const r = tam / 2;
+
+  // Uma fatia só = círculo inteiro: o arco degenera quando início e fim coincidem.
+  if (usadas.length === 1) {
+    return `<svg viewBox="0 0 ${tam} ${tam}" width="${tam}" height="${tam}" role="img">
+      <circle cx="${r}" cy="${r}" r="${r}" fill="${usadas[0].cor}"></circle></svg>`;
+  }
+
+  let ang = -Math.PI / 2;   // começa no topo
+  const partes = usadas.map(f => {
+    const abertura = (f.valor / total) * Math.PI * 2;
+    const x1 = r + r * Math.cos(ang), y1 = r + r * Math.sin(ang);
+    ang += abertura;
+    const x2 = r + r * Math.cos(ang), y2 = r + r * Math.sin(ang);
+    const arcoGrande = abertura > Math.PI ? 1 : 0;
+    return `<path d="M ${r} ${r} L ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${arcoGrande} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} Z"
+      fill="${f.cor}" stroke="#fff" stroke-width="1.5"><title>${esc(f.rotulo)}: ${f.valor}</title></path>`;
+  }).join('');
+
+  return `<svg viewBox="0 0 ${tam} ${tam}" width="${tam}" height="${tam}" role="img">${partes}</svg>`;
+}
+
+function legendaPizza(fatias) {
+  const total = fatias.reduce((s, f) => s + f.valor, 0) || 1;
+  return `<div style="display:flex; flex-direction:column; gap:.45rem; min-width:170px">
+    ${fatias.filter(f => f.valor > 0).map(f => `
+      <div style="display:flex; align-items:center; gap:.55rem; font-size:.84rem">
+        <i style="width:12px; height:12px; border-radius:3px; background:${f.cor}; flex:0 0 auto"></i>
+        <span style="flex:1">${esc(f.rotulo)}</span>
+        <strong>${f.valor}</strong>
+        <small style="color:var(--texto-suave); min-width:38px; text-align:right">${Math.round(f.valor / total * 100)}%</small>
+      </div>`).join('')}
+  </div>`;
+}
+
+function svgRosca(percentual, cor, tam = 108) {
+  const r = tam / 2, raio = r - 10, circ = 2 * Math.PI * raio;
+  const cheio = Math.max(0, Math.min(100, percentual)) / 100 * circ;
+  return `<svg viewBox="0 0 ${tam} ${tam}" width="${tam}" height="${tam}" role="img">
+    <circle cx="${r}" cy="${r}" r="${raio}" fill="none" stroke="${CINZA_TRILHO}" stroke-width="12"></circle>
+    <circle cx="${r}" cy="${r}" r="${raio}" fill="none" stroke="${cor}" stroke-width="12"
+      stroke-dasharray="${cheio.toFixed(2)} ${(circ - cheio).toFixed(2)}"
+      stroke-linecap="round" transform="rotate(-90 ${r} ${r})"></circle>
+    <text x="${r}" y="${r}" text-anchor="middle" dominant-baseline="central"
+      font-family="Fraunces,Georgia,serif" font-size="${(tam * 0.24).toFixed(1)}" fill="${cor}">${percentual}%</text>
+  </svg>`;
+}
+
+/* Botõezinhos para trocar o formato do gráfico. */
+function alternador(chave, opcoes) {
+  return `<div style="display:inline-flex; gap:.3rem">
+    ${opcoes.map(o => `
+      <button class="btn-pdf" style="${GRAFICO[chave] === o.id
+          ? 'background:var(--verde-800); border-color:var(--verde-800); color:var(--areia)' : ''}"
+        onclick="GRAFICO['${chave}']='${o.id}'; render()">${o.rotulo}</button>`).join('')}
+  </div>`;
+}
 
 function diasDeVida(nasc) {
   return Math.round((HOJE - new Date(nasc + 'T00:00:00')) / 86400000);
@@ -603,12 +674,25 @@ function telaVisao() {
     <div class="bloco">
       <div class="bloco-topo">
         <h2>Onde estou</h2>
-        <div style="display:flex; align-items:baseline; gap:.6rem">
-          <span class="dica">geral</span>
-          <strong style="font-family:'Fraunces',serif; font-size:2rem; color:${corPct(geral)}">${geral}%</strong>
+        <div style="display:flex; align-items:center; gap:.9rem; flex-wrap:wrap">
+          ${alternador('criterios', [{ id:'barras', rotulo:'Barras' }, { id:'rosca', rotulo:'Rosca' }])}
+          <button class="btn-pdf" onclick="exportarPDF(this, 'Onde estou — desempenho por critério')">⇩ PDF</button>
+          <div style="display:flex; align-items:baseline; gap:.5rem">
+            <span class="dica">geral</span>
+            <strong style="font-family:'Fraunces',serif; font-size:2rem; color:${corPct(geral)}">${geral}%</strong>
+          </div>
         </div>
       </div>
-      ${indicadores.map(i => `
+      ${GRAFICO.criterios === 'rosca' ? `
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1.4rem .8rem">
+          ${indicadores.map(i => `
+            <div style="text-align:center">
+              ${svgRosca(i.valor, corPct(i.valor))}
+              <div style="font-size:.82rem; margin-top:.5rem; line-height:1.3">${esc(i.rotulo)}</div>
+              <small class="dica">${i.feito} de ${n}${(i.id === 'vis30d' || i.id === 'vis6m') ? ' · ACS' : ''}</small>
+            </div>`).join('')}
+        </div>`
+      : indicadores.map(i => `
         <div class="barra-lin">
           <div>
             <div style="font-size:.92rem; margin-bottom:.2rem">${esc(i.rotulo)}</div>
@@ -630,9 +714,24 @@ function telaVisao() {
     <div class="bloco">
       <div class="bloco-topo">
         <h2>Pontuação das crianças</h2>
-        <span class="dica">hoje, ${fmt(dataISO(HOJE))}</span>
+        <div style="display:flex; align-items:center; gap:.9rem; flex-wrap:wrap">
+          ${alternador('pontuacao', [{ id:'barras', rotulo:'Barras' }, { id:'pizza', rotulo:'Pizza' }])}
+          <button class="btn-pdf" onclick="exportarPDF(this, 'Pontuação das crianças')">⇩ PDF</button>
+          <span class="dica">hoje, ${fmt(dataISO(HOJE))}</span>
+        </div>
       </div>
-      ${faixas.map(f => `
+      ${GRAFICO.pontuacao === 'pizza' ? (() => {
+          const fatias = faixas.map(f => ({
+            rotulo: `${f.rotulo} — ${Math.round(parseFloat(f.rotulo.replace(',','.')) * CRITERIOS.length)} de ${CRITERIOS.length} critérios`,
+            valor: f.n,
+            cor: corPct(parseFloat(f.rotulo.replace(',','.')) * 100)
+          }));
+          return `<div style="display:flex; gap:2rem; align-items:center; justify-content:center; flex-wrap:wrap">
+            ${svgPizza(fatias)}
+            ${legendaPizza(fatias)}
+          </div>`;
+        })()
+      : faixas.map(f => `
         <div style="display:grid; grid-template-columns:44px 1fr 30px; gap:.9rem; align-items:center; margin-bottom:.5rem">
           <span style="font-family:'Fraunces',serif; font-size:1rem; color:var(--texto-suave)">${f.rotulo}</span>
           <div class="trilho" style="height:16px; border-radius:3px">
@@ -640,7 +739,7 @@ function telaVisao() {
           </div>
           <strong style="font-family:'Fraunces',serif">${f.n}</strong>
         </div>`).join('')}
-      <p class="dica" style="margin-top:.9rem">Quantas crianças estão em cada pontuação. Cada consulta que você registra empurra alguém para a barra de cima.</p>
+      <p class="dica" style="margin-top:.9rem">Quantas crianças estão em cada pontuação. Cada consulta que você registra empurra alguém para a faixa de cima.</p>
     </div>
 
     <div class="bloco">
@@ -789,9 +888,39 @@ function telaMicro() {
     <div class="bloco">
       <div class="bloco-topo">
         <h2>Ranking por microárea</h2>
-        <span class="dica">média dos 5 critérios · melhor no topo</span>
+        <div style="display:flex; align-items:center; gap:.9rem; flex-wrap:wrap">
+          ${alternador('micro', [{ id:'barras', rotulo:'Barras' }, { id:'rosca', rotulo:'Rosca' }, { id:'pizza', rotulo:'Pizza' }])}
+          <button class="btn-pdf" onclick="exportarPDF(this, 'Ranking por microárea')">⇩ PDF</button>
+          <span class="dica">média dos ${CRITERIOS.length} critérios · melhor no topo</span>
+        </div>
       </div>
-      ${linhas.map((l, i) => `
+      ${GRAFICO.micro === 'rosca' ? `
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:1.4rem .8rem">
+          ${linhas.map((l, i) => `
+            <div style="text-align:center; cursor:pointer" title="Ver crianças desta microárea"
+              onclick='FILTRO_MICRO=${JSON.stringify(l.nome)}; FILTRO_STATUS=null; VIEW="lista"; SEL=null; BUSCA=""; render(); window.scrollTo(0,0)'>
+              ${svgRosca(l.geral, corPct(l.geral))}
+              <div style="font-size:.9rem; margin-top:.5rem"><strong>#${i + 1}</strong> · ${esc(l.nome)}</div>
+              <small class="dica">${l.n} criança${l.n === 1 ? '' : 's'}${l.risco ? ` · ${l.risco} em risco` : ''}</small>
+            </div>`).join('')}
+        </div>`
+      : GRAFICO.micro === 'pizza' ? (() => {
+          // Aqui a pizza mostra como as crianças se distribuem entre as microáreas
+          // (isso sim é parte de um todo); a cor de cada fatia é o desempenho dela.
+          const fatias = linhas.map(l => ({
+            rotulo: `${l.nome} — ${l.geral}% em dia`,
+            valor: l.n,
+            cor: corPct(l.geral)
+          }));
+          return `<div style="display:flex; gap:2rem; align-items:center; justify-content:center; flex-wrap:wrap">
+              ${svgPizza(fatias)}
+              ${legendaPizza(fatias)}
+            </div>
+            <p class="dica" style="margin-top:1rem; text-align:center">
+              O tamanho da fatia é quantas crianças a microárea tem; a cor é o quanto ela está em dia.
+            </p>`;
+        })()
+      : linhas.map((l, i) => `
         <div class="barra-lin linha" style="cursor:pointer" onclick='FILTRO_MICRO=${JSON.stringify(l.nome)}; FILTRO_STATUS=null; VIEW="lista"; SEL=null; BUSCA=""; render(); window.scrollTo(0,0)' title="Ver crianças desta microárea">
           <div>
             <div style="display:flex; align-items:baseline; gap:.55rem; margin-bottom:.45rem; flex-wrap:wrap">
@@ -806,7 +935,7 @@ function telaMicro() {
             <small style="display:block; font-size:.72rem; color:var(--texto-suave)">pont. média ${l.media.toFixed(2).replace('.', ',')}</small>
           </div>
         </div>`).join('')}
-      <p class="dica" style="margin-top:1rem">Clique numa microárea para ver as crianças dela.</p>
+      ${GRAFICO.micro === 'pizza' ? '' : '<p class="dica" style="margin-top:1rem">Clique numa microárea para ver as crianças dela.</p>'}
     </div>
 
     <div class="bloco">
@@ -1035,12 +1164,22 @@ async function salvarCrianca() {
    funciona offline e não manda dado de paciente para lugar nenhum. */
 function exportarPDF(btn, titulo) {
   const bloco = btn.closest('.bloco');
-  const tabela = bloco && bloco.querySelector('table');
-  if (!tabela) return toast('Nada para exportar aqui.', true);
+  if (!bloco) return toast('Nada para exportar aqui.', true);
 
-  const copia = tabela.cloneNode(true);
+  // Tabela vira paisagem (muitas colunas); gráfico vira retrato.
+  const tabela = bloco.querySelector('table');
+  const origem = tabela || bloco;
+  const copia = origem.cloneNode(true);
+
+  // Tira o que só faz sentido na tela: botões, alternadores, campo de busca.
+  copia.querySelectorAll('button, input, .btn-pdf').forEach(el => el.remove());
   copia.querySelectorAll('[onclick]').forEach(el => el.removeAttribute('onclick'));
   copia.querySelectorAll('[style*="cursor"]').forEach(el => el.style.cursor = '');
+  if (!tabela) {
+    // No bloco inteiro, o cabeçalho já é reimpresso pelo <h1> do documento.
+    const topo = copia.querySelector('.bloco-topo');
+    if (topo) topo.remove();
+  }
 
   const agora = new Date();
   const carimbo = agora.toLocaleDateString('pt-BR') + ' às ' +
@@ -1050,7 +1189,7 @@ function exportarPDF(btn, titulo) {
   const doc = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8" />
 <title>${esc(titulo)} — ${carimbo}</title>
 <style>
-  @page { size:A4 landscape; margin:14mm; }
+  @page { size:A4 ${tabela ? 'landscape' : 'portrait'}; margin:14mm; }
   * { -webkit-print-color-adjust:exact; print-color-adjust:exact; box-sizing:border-box; }
   body { font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; color:#17251F; margin:0; font-size:10pt; }
   header { border-bottom:2px solid #12352A; padding-bottom:8px; margin-bottom:14px; }
@@ -1077,6 +1216,14 @@ function exportarPDF(btn, titulo) {
   .pastilhas i.mal { background:#DC2626; }
   .pontos { font-size:11pt; font-weight:600; }
   small { color:#5D6E66; font-size:7.5pt; }
+  /* gráficos: barras, roscas e pizza */
+  .trilho { background:#EFE7DA; border-radius:20px; overflow:hidden; }
+  .trilho i { display:block; height:100%; border-radius:20px; }
+  .barra-lin { display:grid; grid-template-columns:1fr auto; gap:.3rem 1rem; align-items:center;
+               padding:7px 0; border-bottom:1px solid #EFE7DA; break-inside:avoid; }
+  .barra-lin:last-child { border-bottom:0; }
+  .dica { font-size:8pt; color:#5D6E66; }
+  svg { max-width:100%; height:auto; }
   footer { margin-top:16px; padding-top:7px; border-top:1px solid #E3D8C6;
            font-size:7.5pt; color:#5D6E66; }
   footer strong { color:#DC2626; }
@@ -1086,7 +1233,7 @@ function exportarPDF(btn, titulo) {
   <div class="sub">Enfermeira · COREN-RJ 455892-ENF · ESF Granja · Paty do Alferes/RJ</div>
 </header>
 <h1>${esc(titulo)}</h1>
-<div class="meta">${linhas} registro${linhas === 1 ? '' : 's'} · gerado em ${carimbo}</div>
+<div class="meta">${tabela ? `${linhas} registro${linhas === 1 ? '' : 's'} · ` : `${P.criancas.length} crianças no acompanhamento · `}gerado em ${carimbo}</div>
 ${copia.outerHTML}
 <footer><strong>Documento com dados pessoais de saúde (LGPD).</strong>
 Uso restrito à equipe. Não compartilhe nem descarte sem cuidado.</footer>
