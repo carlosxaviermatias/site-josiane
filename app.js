@@ -23,6 +23,12 @@ const upload = multer({
 });
 
 // ── Middleware ───────────────────────────────────────────────────────
+// Bloqueia acesso direto a arquivos de dados (pacientes.json é sensível/LGPD).
+app.use((req, res, next) => {
+  if (req.path === '/pacientes.json' || req.path === '/data.json') return res.status(404).end();
+  next();
+});
+
 // index:false → a rota '/' decide qual HTML servir
 app.use(express.static(__dirname, { index: false }));
 app.use(express.json({ limit: '50mb' }));
