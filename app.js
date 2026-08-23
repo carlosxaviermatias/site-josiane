@@ -188,8 +188,8 @@ app.get('/artigo/:slug', pagina('artigo.html'));
 app.get('/tema/:id', pagina('tema.html'));
 app.get('/indicacoes', pagina('indicacoes.html'));
 app.get('/faq', pagina('faq.html'));
-app.get('/admin', pagina('admin/index.html'));
-app.get('/admin/pacientes', pagina('admin/pacientes.html'));
+app.get('/sistema', pagina('admin/index.html'));
+app.get('/sistema/pacientes', pagina('admin/pacientes.html'));
 
 app.use((req, res) => res.status(404).sendFile(path.join(__dirname, 'index.html')));
 
